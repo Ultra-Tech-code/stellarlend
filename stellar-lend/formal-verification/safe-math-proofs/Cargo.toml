@@ -1,0 +1,14 @@
+[package]
+name = "safe-math-proofs"
+version = "0.1.0"
+edition = "2021"
+description = "Kani proof harnesses for the StellarLend safe-math library"
+
+# This crate is NOT part of the main workspace.  Run verification with:
+#   cargo kani --manifest-path formal-verification/safe-math-proofs/Cargo.toml
+
+[dependencies]
+stellarlend-safe-math = { path = "../../contracts/safe-math" }
+
+[dev-dependencies]
+kani = { version = "0.55", optional = true }

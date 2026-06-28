@@ -13,6 +13,7 @@ members = [
   "contracts/lending-types",
   "contracts/lending-interest",
   "contracts/lending-risk",
+  "contracts/safe-math",
   "contracts/stablecoin",
   "contracts/institutional-wallet",
   "contracts/migration-hub",
@@ -24,12 +25,13 @@ members = [
   "contracts/dispute-resolution",
   "contracts/credit-delegation",
 ]
-exclude = ["fuzz"]
+exclude = ["fuzz", "formal-verification/safe-math-proofs"]
 
 [workspace.lints.rust]
 
 [workspace.dependencies]
 soroban-sdk = "23.4.1"
+stellarlend-safe-math = { path = "contracts/safe-math" }
 soroban-token-sdk = { version = "23.4.1" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
