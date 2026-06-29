@@ -12,7 +12,7 @@ doctest = false
 soroban-sdk = { workspace = true }
 soroban-token-sdk = { workspace = true }
 stellarlend-amm = { path = "../amm" }
-stellarlend-shared-deadline = { path = "../shared-deadline" }
+stellarlend-oracle-client = { path = "../../packages/oracle-client" }
 stellar-contract-utils = { version = "0.6.0" }
 stellar-macros = { version = "0.6.0" }
 

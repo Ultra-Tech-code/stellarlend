@@ -27,6 +27,7 @@ use crate::admin::get_admin;
 use crate::deposit::DepositDataKey;
 use crate::events::{emit_price_updated, PriceUpdatedEvent};
 use soroban_sdk::{contracterror, contracttype, Address, Env, IntoVal, Map, Symbol, Val, Vec};
+use stellarlend_oracle_client::{validate_price as validate_client_price, OraclePrice};
 
 /// Errors that can occur during oracle operations
 #[contracterror]
@@ -1194,6 +1195,15 @@ pub fn get_price(env: &Env, asset: &Address) -> Result<i128, OracleError> {
     maybe_trip_breaker(env, asset, twap)?;
 
     // Cache and remember as last safe price.
+    let config = get_oracle_config(env);
+    let client_price = OraclePrice {
+        price: twap,
+        updated_at: env.ledger().timestamp(),
+        source: env.current_contract_address(),
+    };
+    validate_client_price(env, &client_price, config.max_staleness_seconds)
+        .map_err(|_| OracleError::InvalidPrice)?;
+
     cache_price(env, asset, twap);
     record_safe_price(env, asset, twap);
 
