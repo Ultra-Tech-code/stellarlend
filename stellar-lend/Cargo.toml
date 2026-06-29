@@ -25,6 +25,10 @@ members = [
   "contracts/copy-lending",
   "contracts/dispute-resolution",
   "contracts/credit-delegation",
+  "contracts/core",
+  "contracts/shared-signatures",
+  "contracts/margin",
+  "contracts/swap-router",
 ]
 exclude = ["fuzz", "formal-verification/safe-math-proofs"]
 
