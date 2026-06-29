@@ -1,9 +1,10 @@
-use soroban_sdk::{Address, Env, Symbol, IntoVal};
+use soroban_sdk::{Address, Env, Symbol};
 
 pub const EVENT_VERSION: u32 = 1;
 
 /// Emits a standardized event across the protocol.
 /// Standard indexed fields: caller, asset, amount
+#[allow(deprecated)]
 pub fn emit_protocol_event(
     env: &Env,
     action_name: &str,
@@ -26,6 +27,12 @@ pub fn emit_protocol_event(
 #[macro_export]
 macro_rules! emit_event {
     ($env:expr, $module:expr, $action:expr, $caller:expr, $asset:expr, $amount:expr) => {
-        $crate::events::emit_protocol_event($env, concat!($module, "_", $action), $caller, $asset, $amount)
+        $crate::events::emit_protocol_event(
+            $env,
+            concat!($module, "_", $action),
+            $caller,
+            $asset,
+            $amount,
+        )
     };
 }
