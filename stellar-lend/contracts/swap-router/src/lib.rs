@@ -2,7 +2,16 @@
 
 pub mod integrations;
 
-use soroban_sdk::{contract, contractimpl, contracttype, Address, Env, Vec};
+use soroban_sdk::{contract, contractimpl, contracttype, contracterror, Address, Env, Vec};
+
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[repr(u32)]
+pub enum SwapRouterError {
+    NoSwapRoutes = 1,
+    SlippageToleranceExceeded = 2,
+    SwapFailed = 3,
+}
 
 #[contracttype]
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -32,28 +41,30 @@ impl SwapRouterContract {
         amount_in: i128,
         min_amount_out: i128,
         routes: Vec<SwapRoute>,
-    ) -> Result<i128, &'static str> {
+    ) -> Result<i128, SwapRouterError> {
         caller.require_auth();
 
         if routes.is_empty() {
-            return Err("No swap routes provided");
+            return Err(SwapRouterError::NoSwapRoutes);
         }
 
         let mut current_amount = amount_in;
 
         for route in routes.iter() {
-            current_amount = match route.protocol {
+            let swap_result = match route.protocol {
                 AMMProtocol::Phoenix => {
-                    integrations::phoenix::swap(&env, &route.pool_address, &route.asset_in, &route.asset_out, current_amount)?
+                    integrations::phoenix::swap(&env, &route.pool_address, &route.asset_in, &route.asset_out, current_amount)
                 }
                 AMMProtocol::Aquarius => {
-                    integrations::aquarius::swap(&env, &route.pool_address, &route.asset_in, &route.asset_out, current_amount)?
+                    integrations::aquarius::swap(&env, &route.pool_address, &route.asset_in, &route.asset_out, current_amount)
                 }
             };
+            
+            current_amount = swap_result.map_err(|_| SwapRouterError::SwapFailed)?;
         }
 
         if current_amount < min_amount_out {
-            return Err("Slippage tolerance exceeded");
+            return Err(SwapRouterError::SlippageToleranceExceeded);
         }
 
         Ok(current_amount)

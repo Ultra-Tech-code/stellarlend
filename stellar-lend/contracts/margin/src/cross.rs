@@ -36,7 +36,7 @@ pub fn liquidate_cross_margin_account(env: &Env, account: &mut MarginAccount) ->
     // For simplicity, we assume the liquidator seizes the entire account positions up to debt coverage.
     
     // Wipe all positions to simulate forced close (in a real scenario, partial liquidation may occur).
-    account.positions.clear();
+    account.positions = soroban_sdk::Vec::new(env);
     account.total_collateral_value = 0;
     account.total_debt_value = 0;
 
