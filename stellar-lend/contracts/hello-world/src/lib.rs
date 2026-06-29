@@ -18,9 +18,12 @@ pub mod errors;
 pub mod events;
 pub mod flash_loan;
 pub mod governance;
+pub mod health;
 pub mod intents;
+pub mod interest;
 pub mod interest_rate;
 pub mod liquidate;
+pub mod liquidation;
 pub mod liquidation_queue;
 pub mod mev_protection;
 pub mod multi_collateral;
@@ -32,12 +35,14 @@ pub mod recovery;
 pub mod reentrancy;
 pub mod repay;
 pub mod reserve;
+pub mod reserve_factor;
 pub mod risk_management;
 pub mod risk_params;
 pub mod safe_math;
 pub mod storage;
 pub mod timelock;
 pub mod treasury;
+pub mod traits;
 pub mod test_utils;
 pub mod tests;
 pub mod types;
@@ -432,6 +437,65 @@ impl HelloContract {
         reserve_factor_bps: i128,
     ) -> Result<(), LendingError> {
         reserve::set_reserve_factor(&env, caller, asset, reserve_factor_bps).map_err(Into::into)
+    }
+
+    pub fn set_reserve_factor_curve(
+        env: Env,
+        caller: Address,
+        asset: Option<Address>,
+        curve: reserve_factor::ReserveFactorCurve,
+    ) -> Result<(), LendingError> {
+        reserve_factor::set_reserve_factor_curve(&env, caller, asset, curve).map_err(Into::into)
+    }
+
+    pub fn set_reserve_factor_bounds(
+        env: Env,
+        caller: Address,
+        asset: Option<Address>,
+        min_bps: i128,
+        max_bps: i128,
+    ) -> Result<(), LendingError> {
+        reserve_factor::set_reserve_factor_bounds(&env, caller, asset, min_bps, max_bps)
+            .map_err(Into::into)
+    }
+
+    pub fn get_reserve_factor_curve(
+        env: Env,
+        asset: Option<Address>,
+    ) -> reserve_factor::ReserveFactorCurve {
+        reserve_factor::get_reserve_factor_curve(&env, asset)
+    }
+
+    pub fn preview_reserve_factor(
+        env: Env,
+        asset: Option<Address>,
+        utilization_bps: Option<i128>,
+    ) -> Result<reserve_factor::ReserveFactorPreview, LendingError> {
+        reserve_factor::preview_reserve_factor(&env, asset, utilization_bps).map_err(Into::into)
+    }
+
+    pub fn get_health_factor_batch(
+        env: Env,
+        user: Address,
+    ) -> health::HealthBatch {
+        health::batch_read_health_data(&env, &user)
+    }
+
+    pub fn get_batched_health_summary(
+        env: Env,
+        user: Address,
+    ) -> Result<cross_asset::UserPositionSummary, LendingError> {
+        health::get_batched_user_position_summary(&env, &user).map_err(Into::into)
+    }
+
+    pub fn registered_pool_modules(env: Env) -> (String, String, String, String) {
+        let modules = traits::registered_modules();
+        (
+            String::from_str(&env, modules.0),
+            String::from_str(&env, modules.1),
+            String::from_str(&env, modules.2),
+            String::from_str(&env, modules.3),
+        )
     }
 
     /// Set treasury address (admin only)

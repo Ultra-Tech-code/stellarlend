@@ -3,6 +3,7 @@ resolver = "2"
 members = [
   "benchmarks",
   "client",
+  "packages/oracle-client",
   "contracts/amm",
   "contracts/bridge",
   "contracts/common",

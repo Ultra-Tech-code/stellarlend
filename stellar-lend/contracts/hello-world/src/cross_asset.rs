@@ -155,10 +155,10 @@ pub enum CrossAssetError {
 const ADMIN: Symbol = symbol_short!("admin");
 
 /// Storage key for the map of asset configurations: Map<AssetKey, AssetConfig>
-const ASSET_CONFIGS: Symbol = symbol_short!("configs");
+pub(crate) const ASSET_CONFIGS: Symbol = symbol_short!("configs");
 
 /// Storage key for the map of user positions: Map<UserAssetKey, AssetPosition>
-const USER_POSITIONS: Symbol = symbol_short!("positions");
+pub(crate) const USER_POSITIONS: Symbol = symbol_short!("positions");
 
 /// Storage key for the map of total supplies per asset: Map<AssetKey, i128>
 const TOTAL_SUPPLIES: Symbol = symbol_short!("supplies");
@@ -167,7 +167,7 @@ const TOTAL_SUPPLIES: Symbol = symbol_short!("supplies");
 const TOTAL_BORROWS: Symbol = symbol_short!("borrows");
 
 /// Storage key for the global list of registered assets: Vec<AssetKey>
-const ASSET_LIST: Symbol = symbol_short!("assets");
+pub(crate) const ASSET_LIST: Symbol = symbol_short!("assets");
 
 /// Initialize the cross-asset lending module.
 ///
@@ -457,84 +457,7 @@ pub fn get_user_position_summary(
     env: &Env,
     user: &Address,
 ) -> Result<UserPositionSummary, CrossAssetError> {
-    let asset_list: Vec<AssetKey> = env
-        .storage()
-        .persistent()
-        .get(&ASSET_LIST)
-        .unwrap_or(Vec::new(env));
-
-    let configs: Map<AssetKey, AssetConfig> = env
-        .storage()
-        .persistent()
-        .get(&ASSET_CONFIGS)
-        .unwrap_or(Map::new(env));
-
-    let mut total_collateral_value: i128 = 0;
-    let mut weighted_collateral_value: i128 = 0;
-    let mut total_debt_value: i128 = 0;
-    let mut weighted_debt_value: i128 = 0;
-
-    for i in 0..asset_list.len() {
-        let asset_key = asset_list.get(i).unwrap();
-
-        if let Some(config) = configs.get(asset_key.clone()) {
-            let asset_option = asset_key.to_option();
-            let position = get_user_asset_position(env, user, asset_option);
-
-            if position.collateral == 0 && position.debt_principal == 0 {
-                continue;
-            }
-
-            let current_time = env.ledger().timestamp();
-            if current_time > config.price_updated_at
-                && current_time - config.price_updated_at > 3600
-            {
-                return Err(CrossAssetError::PriceStale);
-            }
-
-            let collateral_value = (position.collateral * config.price) / 10_000_000;
-            total_collateral_value += collateral_value;
-
-            if config.can_collateralize {
-                weighted_collateral_value +=
-                    (collateral_value * config.liquidation_threshold) / 10_000;
-            }
-
-            let total_debt = position.debt_principal + position.accrued_interest;
-            let debt_value = (total_debt * config.price) / 10_000_000;
-            total_debt_value += debt_value;
-
-            weighted_debt_value += debt_value;
-        }
-    }
-
-    // Calculate health factor (weighted_collateral / weighted_debt * 10000)
-    // Health factor of 1.0 = 10000, below 1.0 can be liquidated
-    let health_factor = if weighted_debt_value > 0 {
-        (weighted_collateral_value * 10_000) / weighted_debt_value
-    } else {
-        i128::MAX // No debt = infinite health
-    };
-
-    // Position is liquidatable if health factor < 1.0 (10000)
-    let is_liquidatable = health_factor < 10_000 && weighted_debt_value > 0;
-
-    // Calculate remaining borrow capacity
-    let borrow_capacity = if weighted_collateral_value > weighted_debt_value {
-        weighted_collateral_value - weighted_debt_value
-    } else {
-        0
-    };
-
-    Ok(UserPositionSummary {
-        total_collateral_value,
-        weighted_collateral_value,
-        total_debt_value,
-        weighted_debt_value,
-        health_factor,
-        is_liquidatable,
-        borrow_capacity,
-    })
+    crate::health::get_batched_user_position_summary(env, user)
 }
 
 /// Deposit collateral for a specific asset.
