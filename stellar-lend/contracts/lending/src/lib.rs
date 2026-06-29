@@ -6,15 +6,15 @@ mod deposit;
 mod events;
 mod flash_loan;
 mod pause;
+mod reentrancy;
+mod rounding;
 mod token_adapter;
 mod token_adapter_erc20;
 mod token_adapter_native;
-mod token_adapter_wrapped;
 mod token_adapter_verify;
+mod token_adapter_wrapped;
 mod token_receiver;
 mod withdraw;
-mod reentrancy;
-mod rounding;
 
 use borrow::{
     borrow as borrow_cmd, deposit as borrow_deposit, get_admin as get_borrow_admin,
@@ -24,19 +24,18 @@ use borrow::{
     set_liquidation_threshold_bps as set_liquidation_threshold_logic,
     set_oracle as set_oracle_logic, BorrowCollateral, BorrowError, DebtPosition,
 };
-use reentrancy::{ReentrancyGuard, ReentrancyKey};
 use deposit::{
     deposit as deposit_logic, get_user_collateral as get_deposit_collateral,
     initialize_deposit_settings as initialize_deposit_logic, DepositCollateral, DepositError,
 };
 use flash_loan::{
-    flash_loan as flash_loan_logic, set_flash_loan_fee_bps as set_flash_loan_fee_logic,
-    set_manipulation_config as set_flash_manipulation_config,
-    record_price_sample as flash_record_price_sample,
+    flash_loan as flash_loan_logic, record_price_sample as flash_record_price_sample,
+    set_flash_loan_fee_bps as set_flash_loan_fee_logic,
+    set_manipulation_config as set_flash_manipulation_config, FlashLoanError,
     ManipulationConfig as FlashManipulationConfig,
-    FlashLoanError,
 };
 use pause::{is_paused, set_pause as set_pause_logic, PauseType};
+use reentrancy::{ReentrancyGuard, ReentrancyKey};
 use token_receiver::receive as receive_logic;
 
 mod views;
@@ -76,8 +75,8 @@ use insurance::{
     get_analytics as insurance_get_analytics, get_claim_by_id as insurance_get_claim,
     get_coverage_limit as insurance_get_coverage_limit,
     get_premium_rate as insurance_get_premium_rate, initialize as insurance_initialize,
-    set_coverage_limit as insurance_set_coverage_limit,
-    submit_claim as insurance_submit_claim, InsuranceAnalytics, InsuranceClaim, InsuranceError,
+    set_coverage_limit as insurance_set_coverage_limit, submit_claim as insurance_submit_claim,
+    InsuranceAnalytics, InsuranceClaim, InsuranceError,
 };
 
 #[cfg(test)]
@@ -95,6 +94,8 @@ mod math_safety_test;
 #[cfg(test)]
 mod pause_test;
 #[cfg(test)]
+mod reentrancy_fuzz_test;
+#[cfg(test)]
 mod token_receiver_test;
 #[cfg(test)]
 mod upgrade_test;
@@ -102,22 +103,20 @@ mod upgrade_test;
 mod views_test;
 #[cfg(test)]
 mod withdraw_test;
-#[cfg(test)]
-mod reentrancy_fuzz_test;
 
 // Property-based tests (issue #359)
 #[cfg(test)]
-mod proptest_helpers;
+mod borrow_prop_test;
 #[cfg(test)]
 mod deposit_prop_test;
-#[cfg(test)]
-mod withdraw_prop_test;
-#[cfg(test)]
-mod borrow_prop_test;
 #[cfg(test)]
 mod interest_rate_prop_test;
 #[cfg(test)]
 mod invariant_prop_test;
+#[cfg(test)]
+mod proptest_helpers;
+#[cfg(test)]
+mod withdraw_prop_test;
 
 #[contract]
 pub struct LendingContract;
@@ -133,8 +132,8 @@ impl LendingContract {
     ) -> Result<(), BorrowError> {
         // CHECKS-EFFECTS-INTERACTIONS PATTERN
         // 1. CHECKS: Reentrancy guard (constructor protection), validation
-        let _guard = ReentrancyGuard::new_constructor(&env)
-            .map_err(|_| BorrowError::ReentrancyDetected)?;
+        let _guard =
+            ReentrancyGuard::new_constructor(&env).map_err(|_| BorrowError::ReentrancyDetected)?;
 
         if get_borrow_admin(&env).is_some() {
             return Err(BorrowError::Unauthorized);
@@ -493,8 +492,8 @@ impl LendingContract {
     pub fn insurance_initialize(env: Env, admin: Address) -> Result<(), InsuranceError> {
         // CHECKS-EFFECTS-INTERACTIONS PATTERN
         // 1. CHECKS: Reentrancy guard (constructor protection)
-        let _guard = ReentrancyGuard::new_constructor(&env)
-            .map_err(|_| InsuranceError::Unauthorized)?;
+        let _guard =
+            ReentrancyGuard::new_constructor(&env).map_err(|_| InsuranceError::Unauthorized)?;
 
         insurance_initialize(&env, &admin)
     }
@@ -606,7 +605,11 @@ impl LendingContract {
     // ═══════════════════════════════════════════════════════════════════
 
     /// Sweep dust amounts from user's deposit position
-    pub fn sweep_deposit_dust(env: Env, user: Address, asset: Address) -> Result<i128, DepositError> {
+    pub fn sweep_deposit_dust(
+        env: Env,
+        user: Address,
+        asset: Address,
+    ) -> Result<i128, DepositError> {
         deposit::sweep_dust(&env, user, asset)
     }
 
@@ -616,7 +619,11 @@ impl LendingContract {
     }
 
     /// Sweep dust amounts from user's withdraw position
-    pub fn sweep_withdraw_dust(env: Env, user: Address, asset: Address) -> Result<i128, WithdrawError> {
+    pub fn sweep_withdraw_dust(
+        env: Env,
+        user: Address,
+        asset: Address,
+    ) -> Result<i128, WithdrawError> {
         withdraw::sweep_dust(&env, user, asset)
     }
 

@@ -35,7 +35,7 @@ pub fn verify_signature_payload(
         .instance()
         .get(&Symbol::new(env, "CHAIN_ID"))
         .unwrap_or(0);
-    
+
     if expected_chain_id != 0 && payload.chain_id != expected_chain_id {
         return Err(SignatureError::InvalidChainId);
     }

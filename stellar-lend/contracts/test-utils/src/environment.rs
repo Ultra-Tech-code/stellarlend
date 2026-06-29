@@ -10,10 +10,10 @@ impl TestEnv {
     pub fn new() -> Self {
         let env = Env::default();
         env.mock_all_auths();
-        
+
         let admin = Address::generate(&env);
         let users = Vec::new();
-        
+
         Self { env, admin, users }
     }
 
@@ -23,7 +23,9 @@ impl TestEnv {
     }
 
     pub fn with_ledger_sequence(mut self, sequence: u32) -> Self {
-        self.env.ledger().with_mut(|li| li.sequence_number = sequence);
+        self.env
+            .ledger()
+            .with_mut(|li| li.sequence_number = sequence);
         self
     }
 
@@ -43,12 +45,16 @@ impl TestEnv {
 
     pub fn advance_time(&mut self, seconds: u64) {
         let current = self.env.ledger().timestamp();
-        self.env.ledger().with_mut(|li| li.timestamp = current + seconds);
+        self.env
+            .ledger()
+            .with_mut(|li| li.timestamp = current + seconds);
     }
 
     pub fn advance_ledger(&mut self, blocks: u32) {
         let current = self.env.ledger().sequence();
-        self.env.ledger().with_mut(|li| li.sequence_number = current + blocks);
+        self.env
+            .ledger()
+            .with_mut(|li| li.sequence_number = current + blocks);
     }
 }
 

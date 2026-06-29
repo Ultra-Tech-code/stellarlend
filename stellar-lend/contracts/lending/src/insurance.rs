@@ -308,9 +308,7 @@ pub fn initialize(env: &Env, admin: &Address) -> Result<(), InsuranceError> {
         return Err(InsuranceError::AlreadyInitialized);
     }
     admin.require_auth();
-    env.storage()
-        .persistent()
-        .set(&InsuranceKey::Admin, admin);
+    env.storage().persistent().set(&InsuranceKey::Admin, admin);
     Ok(())
 }
 
@@ -438,9 +436,15 @@ pub fn submit_claim(
     save_claim(env, &claim);
 
     // Track in claims list for history
-    let mut all_ids: Vec<u64> = env.storage().persistent().get(&InsuranceKey::ClaimsList).unwrap_or_else(|| Vec::new(env));
+    let mut all_ids: Vec<u64> = env
+        .storage()
+        .persistent()
+        .get(&InsuranceKey::ClaimsList)
+        .unwrap_or_else(|| Vec::new(env));
     all_ids.push_back(id);
-    env.storage().persistent().set(&InsuranceKey::ClaimsList, &all_ids);
+    env.storage()
+        .persistent()
+        .set(&InsuranceKey::ClaimsList, &all_ids);
 
     InsuranceClaimSubmittedEvent {
         claim_id: id,
@@ -534,11 +538,7 @@ pub fn set_coverage_limit(
 }
 
 /// Cancel a pending claim (claimant only).
-pub fn cancel_claim(
-    env: &Env,
-    claimant: Address,
-    claim_id: u64,
-) -> Result<(), InsuranceError> {
+pub fn cancel_claim(env: &Env, claimant: Address, claim_id: u64) -> Result<(), InsuranceError> {
     claimant.require_auth();
 
     let mut claim = get_claim(env, claim_id).ok_or(InsuranceError::ClaimNotFound)?;

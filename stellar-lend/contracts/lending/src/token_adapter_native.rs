@@ -4,7 +4,7 @@
 //! Native tokens require different handling than contract-based tokens.
 
 use crate::token_adapter::{AdapterConfig, AdapterError, TokenAdapterType};
-use soroban_sdk::{Address, Env, Vec, token::StellarAssetClient};
+use soroban_sdk::{token::StellarAssetClient, Address, Env, Vec};
 
 /// Native token adapter for handling native blockchain assets
 pub struct NativeAdapter {
@@ -41,7 +41,7 @@ impl NativeAdapter {
 }
 
 /// Native token operations
-/// 
+///
 /// Native tokens (like XLM on Stellar) are handled differently from
 /// contract-based tokens. They use the blockchain's native transfer mechanism.
 pub mod native {
@@ -64,37 +64,23 @@ pub mod native {
     }
 
     /// Get the native balance of an address
-    pub fn balance_of(
-        env: &Env,
-        token: &Address,
-        address: &Address,
-    ) -> Result<i128, AdapterError> {
+    pub fn balance_of(env: &Env, token: &Address, address: &Address) -> Result<i128, AdapterError> {
         let client = StellarAssetClient::new(env, token);
         Ok(client.balance(address))
     }
 
     /// Get the total native token supply
-    pub fn total_supply(
-        _env: &Env,
-    ) -> Result<i128, AdapterError> {
+    pub fn total_supply(_env: &Env) -> Result<i128, AdapterError> {
         Err(AdapterError::NotImplemented)
     }
 
     /// Mint native tokens (requires special permissions)
-    pub fn mint(
-        _env: &Env,
-        _to: &Address,
-        _amount: i128,
-    ) -> Result<(), AdapterError> {
+    pub fn mint(_env: &Env, _to: &Address, _amount: i128) -> Result<(), AdapterError> {
         Err(AdapterError::NotImplemented)
     }
 
     /// Burn native tokens
-    pub fn burn(
-        _env: &Env,
-        _from: &Address,
-        _amount: i128,
-    ) -> Result<(), AdapterError> {
+    pub fn burn(_env: &Env, _from: &Address, _amount: i128) -> Result<(), AdapterError> {
         Err(AdapterError::NotImplemented)
     }
 }
@@ -112,7 +98,13 @@ impl super::TokenAdapterTrait for NativeAdapter {
         self.config.enabled
     }
 
-    fn transfer(&self, env: &Env, from: &Address, to: &Address, amount: i128) -> Result<(), AdapterError> {
+    fn transfer(
+        &self,
+        env: &Env,
+        from: &Address,
+        to: &Address,
+        amount: i128,
+    ) -> Result<(), AdapterError> {
         native::transfer(env, &self.config.token_address, from, to, amount)
     }
 
@@ -124,27 +116,41 @@ impl super::TokenAdapterTrait for NativeAdapter {
         native::total_supply(env)
     }
 
-    fn approve(&self, _env: &Env, _owner: &Address, _spender: &Address, _amount: i128) -> Result<(), AdapterError> {
+    fn approve(
+        &self,
+        _env: &Env,
+        _owner: &Address,
+        _spender: &Address,
+        _amount: i128,
+    ) -> Result<(), AdapterError> {
         // Native tokens don't support approval in the same way
         Err(AdapterError::NotImplemented)
     }
 
-    fn allowance(&self, _env: &Env, _owner: &Address, _spender: &Address) -> Result<i128, AdapterError> {
+    fn allowance(
+        &self,
+        _env: &Env,
+        _owner: &Address,
+        _spender: &Address,
+    ) -> Result<i128, AdapterError> {
         // Native tokens don't have allowances
         Ok(0)
     }
 
-    fn transfer_from(&self, _env: &Env, _from: &Address, _to: &Address, _amount: i128) -> Result<(), AdapterError> {
+    fn transfer_from(
+        &self,
+        _env: &Env,
+        _from: &Address,
+        _to: &Address,
+        _amount: i128,
+    ) -> Result<(), AdapterError> {
         // Native tokens don't support transfer_from
         Err(AdapterError::NotImplemented)
     }
 }
 
 /// Verify if an address represents a native token
-pub fn verify_native_token(
-    env: &Env,
-    token_address: &Address,
-) -> Result<bool, AdapterError> {
+pub fn verify_native_token(env: &Env, token_address: &Address) -> Result<bool, AdapterError> {
     // Native tokens are identified by special addresses or flags
     // In Stellar, native XLM is handled differently from token contracts
     Ok(true) // Native adapter is considered valid when enabled

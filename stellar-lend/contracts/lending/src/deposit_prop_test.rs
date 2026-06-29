@@ -1,6 +1,6 @@
+use crate::proptest_helpers::{make_harness, MAX_AMOUNT, MIN_AMOUNT};
 use proptest::prelude::*;
 use soroban_sdk::{testutils::Address as _, Address};
-use crate::proptest_helpers::{make_harness, MIN_AMOUNT, MAX_AMOUNT};
 
 proptest! {
     /// PROP-DEP-01: valid deposit returns exact amount

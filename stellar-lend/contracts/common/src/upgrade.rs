@@ -1,7 +1,7 @@
 use crate::events::{
     UpgradeApprovalRecordedEvent, UpgradeApproverAddedEvent, UpgradeApproverRemovedEvent,
-    UpgradeExecutedEvent, UpgradeInitEvent, UpgradeProposedEvent, UpgradeRollbackEvent,
-    UpgradeTimelockQueuedEvent, UpgradeEmergencyProposedEvent,
+    UpgradeEmergencyProposedEvent, UpgradeExecutedEvent, UpgradeInitEvent, UpgradeProposedEvent,
+    UpgradeRollbackEvent, UpgradeTimelockQueuedEvent,
 };
 use soroban_sdk::{
     contract, contracterror, contractimpl, contracttype, panic_with_error, Address, BytesN, Env,

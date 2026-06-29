@@ -1,7 +1,5 @@
 #![no_std]
-use soroban_sdk::{
-    contract, contractimpl, contracttype, symbol_short, Address, Env, Symbol,
-};
+use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, Address, Env, Symbol};
 
 const CREDIT_COUNTER: Symbol = symbol_short!("cntr");
 
@@ -103,13 +101,16 @@ impl CreditDelegationContract {
             transfer_count: 0,
         };
 
-        env.storage().instance().set(&CreditDataKey::CreditLine(counter), &credit_line);
+        env.storage()
+            .instance()
+            .set(&CreditDataKey::CreditLine(counter), &credit_line);
         counter
     }
 
     pub fn draw(env: Env, credit_line_id: u64, delegate: Address, amount: i128) {
         delegate.require_auth();
-        let mut credit_line: CreditLine = env.storage()
+        let mut credit_line: CreditLine = env
+            .storage()
             .instance()
             .get(&CreditDataKey::CreditLine(credit_line_id))
             .unwrap_or_else(|| panic!("credit line not found"));
@@ -133,12 +134,15 @@ impl CreditDelegationContract {
         credit_line.status = CreditStatus::Drawn;
         credit_line.updated_at = env.ledger().sequence().into();
 
-        env.storage().instance().set(&CreditDataKey::CreditLine(credit_line_id), &credit_line);
+        env.storage()
+            .instance()
+            .set(&CreditDataKey::CreditLine(credit_line_id), &credit_line);
     }
 
     pub fn repay(env: Env, credit_line_id: u64, delegate: Address, amount: i128) {
         delegate.require_auth();
-        let mut credit_line: CreditLine = env.storage()
+        let mut credit_line: CreditLine = env
+            .storage()
             .instance()
             .get(&CreditDataKey::CreditLine(credit_line_id))
             .unwrap_or_else(|| panic!("credit line not found"));
@@ -161,12 +165,15 @@ impl CreditDelegationContract {
         }
         credit_line.updated_at = env.ledger().sequence().into();
 
-        env.storage().instance().set(&CreditDataKey::CreditLine(credit_line_id), &credit_line);
+        env.storage()
+            .instance()
+            .set(&CreditDataKey::CreditLine(credit_line_id), &credit_line);
     }
 
     pub fn claim_default(env: Env, credit_line_id: u64, delegator: Address) {
         delegator.require_auth();
-        let mut credit_line: CreditLine = env.storage()
+        let mut credit_line: CreditLine = env
+            .storage()
             .instance()
             .get(&CreditDataKey::CreditLine(credit_line_id))
             .unwrap_or_else(|| panic!("credit line not found"));
@@ -187,12 +194,15 @@ impl CreditDelegationContract {
         credit_line.status = CreditStatus::Defaulted;
         credit_line.updated_at = env.ledger().sequence().into();
 
-        env.storage().instance().set(&CreditDataKey::CreditLine(credit_line_id), &credit_line);
+        env.storage()
+            .instance()
+            .set(&CreditDataKey::CreditLine(credit_line_id), &credit_line);
     }
 
     pub fn adjust_limit(env: Env, credit_line_id: u64, delegator: Address, new_max: i128) {
         delegator.require_auth();
-        let mut credit_line: CreditLine = env.storage()
+        let mut credit_line: CreditLine = env
+            .storage()
             .instance()
             .get(&CreditDataKey::CreditLine(credit_line_id))
             .unwrap_or_else(|| panic!("credit line not found"));
@@ -207,12 +217,20 @@ impl CreditDelegationContract {
         credit_line.max_amount = new_max;
         credit_line.updated_at = env.ledger().sequence().into();
 
-        env.storage().instance().set(&CreditDataKey::CreditLine(credit_line_id), &credit_line);
+        env.storage()
+            .instance()
+            .set(&CreditDataKey::CreditLine(credit_line_id), &credit_line);
     }
 
-    pub fn transfer(env: Env, credit_line_id: u64, current_delegator: Address, new_delegator: Address) {
+    pub fn transfer(
+        env: Env,
+        credit_line_id: u64,
+        current_delegator: Address,
+        new_delegator: Address,
+    ) {
         current_delegator.require_auth();
-        let mut credit_line: CreditLine = env.storage()
+        let mut credit_line: CreditLine = env
+            .storage()
             .instance()
             .get(&CreditDataKey::CreditLine(credit_line_id))
             .unwrap_or_else(|| panic!("credit line not found"));
@@ -225,10 +243,14 @@ impl CreditDelegationContract {
         credit_line.transfer_count += 1;
         credit_line.updated_at = env.ledger().sequence().into();
 
-        env.storage().instance().set(&CreditDataKey::CreditLine(credit_line_id), &credit_line);
+        env.storage()
+            .instance()
+            .set(&CreditDataKey::CreditLine(credit_line_id), &credit_line);
     }
 
     pub fn get_credit_line(env: Env, credit_line_id: u64) -> Option<CreditLine> {
-        env.storage().instance().get(&CreditDataKey::CreditLine(credit_line_id))
+        env.storage()
+            .instance()
+            .get(&CreditDataKey::CreditLine(credit_line_id))
     }
 }

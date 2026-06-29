@@ -181,11 +181,7 @@ pub fn simple_interest(
     let bps256 = I256::from_i128(env, 10_000);
     let spy256 = I256::from_i128(env, SECONDS_PER_YEAR as i128);
 
-    let result = p256
-        .mul(&r256)
-        .mul(&t256)
-        .div(&bps256)
-        .div(&spy256);
+    let result = p256.mul(&r256).mul(&t256).div(&bps256).div(&spy256);
 
     result.to_i128().ok_or(MathError::Overflow)
 }

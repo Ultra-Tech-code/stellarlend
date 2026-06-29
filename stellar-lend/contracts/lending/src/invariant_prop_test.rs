@@ -1,30 +1,46 @@
 extern crate std;
+use crate::proptest_helpers::{LARGE_CEILING, MAX_AMOUNT, MIN_AMOUNT};
+use crate::{LendingContract, LendingContractClient};
 use proptest::prelude::*;
 use soroban_sdk::{testutils::Address as _, Address, Env};
-use crate::{LendingContract, LendingContractClient};
-use crate::proptest_helpers::{MIN_AMOUNT, MAX_AMOUNT, LARGE_CEILING};
 
 #[derive(Clone, Debug)]
 enum Action {
-    Deposit  { user: u8, amount: i128 },
-    Withdraw { user: u8, amount: i128 },
-    Borrow   { user: u8, borrow: i128, collateral: i128 },
-    Repay    { user: u8, amount: i128 },
+    Deposit {
+        user: u8,
+        amount: i128,
+    },
+    Withdraw {
+        user: u8,
+        amount: i128,
+    },
+    Borrow {
+        user: u8,
+        borrow: i128,
+        collateral: i128,
+    },
+    Repay {
+        user: u8,
+        amount: i128,
+    },
 }
 
 fn action_strategy() -> impl Strategy<Value = Action> {
     prop_oneof![
-        (0u8..=2, MIN_AMOUNT..=MAX_AMOUNT/4)
-            .prop_map(|(u,a)| Action::Deposit{user:u,amount:a}),
-        (0u8..=2, MIN_AMOUNT..=MAX_AMOUNT/8)
-            .prop_map(|(u,a)| Action::Withdraw{user:u,amount:a}),
-        (0u8..=2, MIN_AMOUNT..=MAX_AMOUNT/4).prop_flat_map(|(u,b)| {
-            let min_c = (b*15_000+9_999)/10_000;
-            (Just(u), Just(b), min_c..=MAX_AMOUNT/2)
-                .prop_map(|(u,b,c)| Action::Borrow{user:u,borrow:b,collateral:c})
+        (0u8..=2, MIN_AMOUNT..=MAX_AMOUNT / 4)
+            .prop_map(|(u, a)| Action::Deposit { user: u, amount: a }),
+        (0u8..=2, MIN_AMOUNT..=MAX_AMOUNT / 8)
+            .prop_map(|(u, a)| Action::Withdraw { user: u, amount: a }),
+        (0u8..=2, MIN_AMOUNT..=MAX_AMOUNT / 4).prop_flat_map(|(u, b)| {
+            let min_c = (b * 15_000 + 9_999) / 10_000;
+            (Just(u), Just(b), min_c..=MAX_AMOUNT / 2).prop_map(|(u, b, c)| Action::Borrow {
+                user: u,
+                borrow: b,
+                collateral: c,
+            })
         }),
-        (0u8..=2, MIN_AMOUNT..=MAX_AMOUNT/4)
-            .prop_map(|(u,a)| Action::Repay{user:u,amount:a}),
+        (0u8..=2, MIN_AMOUNT..=MAX_AMOUNT / 4)
+            .prop_map(|(u, a)| Action::Repay { user: u, amount: a }),
     ]
 }
 

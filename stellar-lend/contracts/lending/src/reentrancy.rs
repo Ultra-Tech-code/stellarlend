@@ -71,7 +71,11 @@ impl<'a> ReentrancyGuard<'a> {
     }
 
     /// Create a new reentrancy guard with a specific key
-    pub fn new_with_key(env: &'a Env, key: ReentrancyKey, is_read_only: bool) -> Result<Self, ReentrancyError> {
+    pub fn new_with_key(
+        env: &'a Env,
+        key: ReentrancyKey,
+        is_read_only: bool,
+    ) -> Result<Self, ReentrancyError> {
         // CHECK: Are we already inside this function?
         let storage_key = Self::key_to_symbol(env, &key);
         if env.storage().temporary().has(&storage_key) {
@@ -95,7 +99,9 @@ impl<'a> ReentrancyGuard<'a> {
         if let Some(caller_addr) = caller {
             let cross_contract_key = ReentrancyKey::CrossContractLock(caller_addr);
             let cross_contract_storage_key = Self::key_to_symbol(env, &cross_contract_key);
-            env.storage().temporary().set(&cross_contract_storage_key, &true);
+            env.storage()
+                .temporary()
+                .set(&cross_contract_storage_key, &true);
         }
 
         Ok(Self {
@@ -111,14 +117,14 @@ impl<'a> ReentrancyGuard<'a> {
     pub fn new_cross_contract(env: &'a Env, caller: &Address) -> Result<Self, ReentrancyError> {
         let key = ReentrancyKey::CrossContractLock(caller.clone());
         let storage_key = Self::key_to_symbol(env, &key);
-        
+
         // Check for cross-contract reentrancy
         if env.storage().temporary().has(&storage_key) {
             return Err(ReentrancyError::CrossContractReentrancy);
         }
 
         env.storage().temporary().set(&storage_key, &true);
-        
+
         Ok(Self {
             env,
             key,
@@ -132,7 +138,7 @@ impl<'a> ReentrancyGuard<'a> {
     pub fn new_read_only(env: &'a Env) -> Result<Self, ReentrancyError> {
         let key = ReentrancyKey::ReadOnlyLock;
         let storage_key = Self::key_to_symbol(env, &key);
-        
+
         // Read-only functions can be re-entered but we track it
         let state_before = if env.storage().temporary().has(&storage_key) {
             GuardState::Entered
@@ -141,7 +147,7 @@ impl<'a> ReentrancyGuard<'a> {
         };
 
         env.storage().temporary().set(&storage_key, &true);
-        
+
         Ok(Self {
             env,
             key,
@@ -155,13 +161,13 @@ impl<'a> ReentrancyGuard<'a> {
     pub fn new_constructor(env: &'a Env) -> Result<Self, ReentrancyError> {
         let key = ReentrancyKey::ConstructorLock;
         let storage_key = Self::key_to_symbol(env, &key);
-        
+
         if env.storage().temporary().has(&storage_key) {
             return Err(ReentrancyError::ConstructorReentrancy);
         }
 
         env.storage().temporary().set(&storage_key, &true);
-        
+
         Ok(Self {
             env,
             key,
@@ -175,13 +181,13 @@ impl<'a> ReentrancyGuard<'a> {
     pub fn new_delegate_call(env: &'a Env) -> Result<Self, ReentrancyError> {
         let key = ReentrancyKey::DelegateCallLock;
         let storage_key = Self::key_to_symbol(env, &key);
-        
+
         if env.storage().temporary().has(&storage_key) {
             return Err(ReentrancyError::DelegateCallReentrancy);
         }
 
         env.storage().temporary().set(&storage_key, &true);
-        
+
         Ok(Self {
             env,
             key,
@@ -206,7 +212,9 @@ impl<'a> ReentrancyGuard<'a> {
             ReentrancyKey::RepayLock => Symbol::new(env, "REENTRANCY_REPAY"),
             ReentrancyKey::LiquidateLock => Symbol::new(env, "REENTRANCY_LIQUIDATE"),
             ReentrancyKey::FlashLoanLock => Symbol::new(env, "REENTRANCY_FLASH_LOAN"),
-            ReentrancyKey::DepositCollateralLock => Symbol::new(env, "REENTRANCY_DEPOSIT_COLLATERAL"),
+            ReentrancyKey::DepositCollateralLock => {
+                Symbol::new(env, "REENTRANCY_DEPOSIT_COLLATERAL")
+            }
             ReentrancyKey::CrossContractLock(addr) => {
                 Symbol::new(env, &format!("REENTRANCY_CROSS_{}", addr))
             }
@@ -227,7 +235,10 @@ impl<'a> Drop for ReentrancyGuard<'a> {
         if let Some(caller) = &self.caller {
             let cross_contract_key = ReentrancyKey::CrossContractLock(caller.clone());
             let cross_contract_storage_key = Self::key_to_symbol(&self.env, &cross_contract_key);
-            self.env.storage().temporary().remove(&cross_contract_storage_key);
+            self.env
+                .storage()
+                .temporary()
+                .remove(&cross_contract_storage_key);
         }
     }
 }

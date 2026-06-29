@@ -117,8 +117,8 @@ pub fn pack(config: &PoolConfig) -> Result<PackedConfig, PackError> {
     if config.last_update > TS_MASK {
         return Err(PackError::TimestampOverflow);
     }
-    let status_word = (config.last_update & TS_MASK)
-        | (((config.flags as u64) & FLAGS_MASK) << FLAGS_SHIFT);
+    let status_word =
+        (config.last_update & TS_MASK) | (((config.flags as u64) & FLAGS_MASK) << FLAGS_SHIFT);
 
     Ok(PackedConfig {
         rate_word,

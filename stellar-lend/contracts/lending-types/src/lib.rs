@@ -84,11 +84,15 @@ pub fn current_timestamp(env: &Env) -> u64 {
     env.ledger().timestamp()
 }
 
-pub fn calculate_health_factor(collateral_value: i128, debt_value: i128, threshold_bps: i128) -> i128 {
+pub fn calculate_health_factor(
+    collateral_value: i128,
+    debt_value: i128,
+    threshold_bps: i128,
+) -> i128 {
     if debt_value == 0 {
         return i128::MAX;
     }
-    
+
     collateral_value
         .checked_mul(threshold_bps)
         .and_then(|v| v.checked_div(debt_value))

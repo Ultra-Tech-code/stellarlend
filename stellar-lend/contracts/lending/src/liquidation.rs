@@ -114,7 +114,9 @@ pub fn seize_value(repay_value: i128, incentive_bps: i128) -> Result<i128, Liqui
         .ok_or(LiquidationError::Overflow)?
         .checked_div(BPS_SCALE)
         .ok_or(LiquidationError::Overflow)?;
-    repay_value.checked_add(bonus).ok_or(LiquidationError::Overflow)
+    repay_value
+        .checked_add(bonus)
+        .ok_or(LiquidationError::Overflow)
 }
 
 /// Is the oracle price fresh enough? Pure so it can be tested deterministically.
@@ -123,7 +125,10 @@ pub fn is_oracle_fresh(oracle_timestamp: u64, now: u64, max_age_secs: u64) -> bo
 }
 
 /// Abort when the bonus cannot cover the estimated execution cost.
-pub fn abort_if_unprofitable(bonus_value: i128, est_gas_cost: i128) -> Result<(), LiquidationError> {
+pub fn abort_if_unprofitable(
+    bonus_value: i128,
+    est_gas_cost: i128,
+) -> Result<(), LiquidationError> {
     if bonus_value <= est_gas_cost {
         return Err(LiquidationError::Unprofitable);
     }

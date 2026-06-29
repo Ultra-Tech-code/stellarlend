@@ -58,7 +58,10 @@ impl DelegationRegistry {
         if require_strict_deadline(&env, expiry, ()).is_err() {
             return Err(DelegationError::InvalidExpiry);
         }
-        let d = Delegation { permissions, expiry };
+        let d = Delegation {
+            permissions,
+            expiry,
+        };
         env.storage()
             .persistent()
             .set(&DataKey::Delegation(delegator, delegate), &d);
@@ -79,12 +82,7 @@ impl DelegationRegistry {
             .get(&DataKey::Delegation(delegator, delegate))
     }
 
-    pub fn validate(
-        env: Env,
-        delegator: Address,
-        delegate: Address,
-        permission: u32,
-    ) -> bool {
+    pub fn validate(env: Env, delegator: Address, delegate: Address, permission: u32) -> bool {
         let d: Option<Delegation> = Self::get(env.clone(), delegator, delegate);
         match d {
             Some(d) => delegation_valid(&env, &d, permission),

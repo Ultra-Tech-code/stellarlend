@@ -1,10 +1,16 @@
-use soroban_sdk::{Address, Env, contractimpl};
+use soroban_sdk::{contractimpl, Address, Env};
 
 pub struct MockToken;
 
 #[contractimpl]
 impl MockToken {
-    pub fn initialize(env: Env, admin: Address, decimal: u32, name: soroban_sdk::String, symbol: soroban_sdk::String) {
+    pub fn initialize(
+        env: Env,
+        admin: Address,
+        decimal: u32,
+        name: soroban_sdk::String,
+        symbol: soroban_sdk::String,
+    ) {
         env.storage().instance().set(&"admin", &admin);
         env.storage().instance().set(&"decimal", &decimal);
         env.storage().instance().set(&"name", &name);
@@ -15,8 +21,7 @@ impl MockToken {
         env.storage().persistent().get(&id).unwrap_or(0)
     }
 
-    pub fn transfer(_env: Env, _from: Address, _to: Address, _amount: i128) {
-    }
+    pub fn transfer(_env: Env, _from: Address, _to: Address, _amount: i128) {}
 
     pub fn mint(env: Env, to: Address, amount: i128) {
         let balance: i128 = env.storage().persistent().get(&to).unwrap_or(0);

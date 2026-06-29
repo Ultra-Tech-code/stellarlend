@@ -257,7 +257,8 @@ mod unit {
         let a = advance_index(INDEX_SCALE, 1000, half).unwrap();
         let b = advance_index(a, 1000, half).unwrap();
         // Linear within each segment: total delta == index*rate*1yr/(bps*yr) twice.
-        let expected_delta_each = INDEX_SCALE * 1000 * (half as i128) / (BPS_SCALE * SECONDS_PER_YEAR);
+        let expected_delta_each =
+            INDEX_SCALE * 1000 * (half as i128) / (BPS_SCALE * SECONDS_PER_YEAR);
         assert_eq!(a, INDEX_SCALE + expected_delta_each);
         // Second segment compounds off the larger index.
         let second_delta = a * 1000 * (half as i128) / (BPS_SCALE * SECONDS_PER_YEAR);

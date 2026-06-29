@@ -150,11 +150,14 @@ fn compute_score(total: u32, on_time: u32, defaults: u32) -> u32 {
         1000 - default_penalty
     };
 
-    let weighted: u64 =
-        on_time_component * 40 + count_component * 30 + no_default_component * 30;
+    let weighted: u64 = on_time_component * 40 + count_component * 30 + no_default_component * 30;
     let score = weighted / 100; // back to 0..1000
 
-    if score > 1000 { 1000 } else { score as u32 }
+    if score > 1000 {
+        1000
+    } else {
+        score as u32
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -169,7 +172,11 @@ impl ReputationContract {
     // ── Initialization ────────────────────────────────────────────────────
 
     /// Initialize the reputation system. Can only be called once.
-    pub fn initialize(env: Env, admin: Address, config: ReputationConfig) -> Result<(), ReputationError> {
+    pub fn initialize(
+        env: Env,
+        admin: Address,
+        config: ReputationConfig,
+    ) -> Result<(), ReputationError> {
         if env.storage().instance().has(&DataKey::Config) {
             return Err(ReputationError::AlreadyInitialized);
         }
@@ -209,7 +216,9 @@ impl ReputationContract {
         rep.tier = tier_from_score(&config, rep.score);
         rep.last_activity_timestamp = env.ledger().timestamp();
 
-        env.storage().persistent().set(&DataKey::Score(borrower), &rep);
+        env.storage()
+            .persistent()
+            .set(&DataKey::Score(borrower), &rep);
         Ok(rep)
     }
 
@@ -227,7 +236,9 @@ impl ReputationContract {
         rep.tier = tier_from_score(&config, rep.score);
         rep.last_activity_timestamp = env.ledger().timestamp();
 
-        env.storage().persistent().set(&DataKey::Score(borrower), &rep);
+        env.storage()
+            .persistent()
+            .set(&DataKey::Score(borrower), &rep);
         Ok(rep)
     }
 
@@ -248,7 +259,10 @@ impl ReputationContract {
     }
 
     /// Get benefits associated with a given tier.
-    pub fn get_tier_benefits(env: Env, tier: ReputationTier) -> Result<TierBenefits, ReputationError> {
+    pub fn get_tier_benefits(
+        env: Env,
+        tier: ReputationTier,
+    ) -> Result<TierBenefits, ReputationError> {
         let config: ReputationConfig = env
             .storage()
             .instance()
@@ -296,7 +310,9 @@ impl ReputationContract {
         rep.tier = tier_from_score(&config, rep.score);
         // Do NOT update last_activity_timestamp — decay is not "activity".
 
-        env.storage().persistent().set(&DataKey::Score(address), &rep);
+        env.storage()
+            .persistent()
+            .set(&DataKey::Score(address), &rep);
         Ok(rep)
     }
 

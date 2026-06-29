@@ -75,12 +75,7 @@ impl CopyLendingContract {
             .get(&CopyLendingDataKey::Strategy(leader))
     }
 
-    pub fn follow(
-        env: Env,
-        follower: Address,
-        leader: Address,
-        amount: i128,
-    ) -> FollowRelation {
+    pub fn follow(env: Env, follower: Address, leader: Address, amount: i128) -> FollowRelation {
         follower.require_auth();
 
         let min_investment: i128 = 1_000_000;
@@ -128,9 +123,10 @@ impl CopyLendingContract {
             .instance()
             .get(&CopyLendingDataKey::FollowerCount(leader.clone()))
             .unwrap_or(0);
-        env.storage()
-            .instance()
-            .set(&CopyLendingDataKey::FollowerCount(leader.clone()), &(count + 1));
+        env.storage().instance().set(
+            &CopyLendingDataKey::FollowerCount(leader.clone()),
+            &(count + 1),
+        );
 
         relation
     }
@@ -155,9 +151,10 @@ impl CopyLendingContract {
             .get(&CopyLendingDataKey::FollowerCount(leader.clone()))
             .unwrap_or(1);
         if count > 0 {
-            env.storage()
-                .instance()
-                .set(&CopyLendingDataKey::FollowerCount(leader.clone()), &(count - 1));
+            env.storage().instance().set(
+                &CopyLendingDataKey::FollowerCount(leader.clone()),
+                &(count - 1),
+            );
         }
 
         Some(relation)

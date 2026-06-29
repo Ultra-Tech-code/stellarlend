@@ -2,7 +2,7 @@
 
 pub mod integrations;
 
-use soroban_sdk::{contract, contractimpl, contracttype, contracterror, Address, Env, Vec};
+use soroban_sdk::{contract, contracterror, contractimpl, contracttype, Address, Env, Vec};
 
 #[contracterror]
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -52,14 +52,22 @@ impl SwapRouterContract {
 
         for route in routes.iter() {
             let swap_result = match route.protocol {
-                AMMProtocol::Phoenix => {
-                    integrations::phoenix::swap(&env, &route.pool_address, &route.asset_in, &route.asset_out, current_amount)
-                }
-                AMMProtocol::Aquarius => {
-                    integrations::aquarius::swap(&env, &route.pool_address, &route.asset_in, &route.asset_out, current_amount)
-                }
+                AMMProtocol::Phoenix => integrations::phoenix::swap(
+                    &env,
+                    &route.pool_address,
+                    &route.asset_in,
+                    &route.asset_out,
+                    current_amount,
+                ),
+                AMMProtocol::Aquarius => integrations::aquarius::swap(
+                    &env,
+                    &route.pool_address,
+                    &route.asset_in,
+                    &route.asset_out,
+                    current_amount,
+                ),
             };
-            
+
             current_amount = swap_result.map_err(|_| SwapRouterError::SwapFailed)?;
         }
 

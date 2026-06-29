@@ -389,7 +389,8 @@ fn adjust_stability_fee(env: &Env, current_price: i128) -> Result<i128, Stableco
     if deviation_bps > config.peg_threshold_bps {
         // Increase fee when de-pegged: each bps of deviation adds 1 bps to fee
         let increase = deviation_bps - config.peg_threshold_bps;
-        new_fee = config.stability_fee_bps
+        new_fee = config
+            .stability_fee_bps
             .checked_add(increase)
             .ok_or(StablecoinError::Overflow)?;
 
@@ -457,12 +458,8 @@ impl StablecoinContract {
         env.storage()
             .instance()
             .set(&DataKey::TotalCollateral, &0i128);
-        env.storage()
-            .instance()
-            .set(&DataKey::TotalMinted, &0i128);
-        env.storage()
-            .instance()
-            .set(&DataKey::TotalYield, &0i128);
+        env.storage().instance().set(&DataKey::TotalMinted, &0i128);
+        env.storage().instance().set(&DataKey::TotalYield, &0i128);
 
         env.events().publish(
             (Symbol::new(&env, "stablecoin_initialized"),),
@@ -846,10 +843,7 @@ impl StablecoinContract {
     /// Activate emergency redemption (global settlement).
     /// Only callable by admin. Freezes minting, allows anyone to redeem at
     /// proportional share of collateral pool.
-    pub fn activate_emergency_redemption(
-        env: Env,
-        caller: Address,
-    ) -> Result<(), StablecoinError> {
+    pub fn activate_emergency_redemption(env: Env, caller: Address) -> Result<(), StablecoinError> {
         caller.require_auth();
         require_admin(&env, &caller)?;
 
@@ -919,7 +913,11 @@ impl StablecoinContract {
 
         sub_total_collateral(&env, collateral_out)?;
         sub_total_minted(&env, burn_amount)?;
-        set_user_collateral(&env, &user, get_user_collateral(&env, &user) - gross_collateral);
+        set_user_collateral(
+            &env,
+            &user,
+            get_user_collateral(&env, &user) - gross_collateral,
+        );
         set_user_minted(&env, &user, user_minted - burn_amount);
 
         let stable = stablecoin_token(&env)?;
@@ -945,11 +943,7 @@ impl StablecoinContract {
     /// Deposit protocol yield from lending protocol into stablecoin reserves.
     /// Increases total collateral without minting new stablecoin, improving
     /// the collateralization ratio.
-    pub fn deposit_yield(
-        env: Env,
-        caller: Address,
-        amount: i128,
-    ) -> Result<(), StablecoinError> {
+    pub fn deposit_yield(env: Env, caller: Address, amount: i128) -> Result<(), StablecoinError> {
         caller.require_auth();
         require_admin(&env, &caller)?;
         if amount <= 0 {
@@ -1026,9 +1020,7 @@ impl StablecoinContract {
         })
     }
 
-    pub fn get_protocol_stats(
-        env: Env,
-    ) -> Result<(i128, i128, bool, i128), StablecoinError> {
+    pub fn get_protocol_stats(env: Env) -> Result<(i128, i128, bool, i128), StablecoinError> {
         require_init(&env)?;
         Ok((
             get_total_collateral(&env),

@@ -17,17 +17,15 @@ impl InterestRateModel {
     /// Above kink:  `base_rate + kink × slope1 / 10 000 + excess × slope2 / 10 000`
     pub fn calculate_borrow_rate(&self, utilization: i128) -> Result<i128, MathError> {
         if utilization <= self.optimal_utilization {
-            let inc = safe_mul(utilization, self.slope1)
-                .and_then(|v| safe_div(v, 10_000))?;
+            let inc = safe_mul(utilization, self.slope1).and_then(|v| safe_div(v, 10_000))?;
             safe_add(self.base_rate, inc)
         } else {
             let excess = safe_add(utilization, -self.optimal_utilization)?;
             let kink_component = safe_mul(self.optimal_utilization, self.slope1)
                 .and_then(|v| safe_div(v, 10_000))?;
-            let excess_component = safe_mul(excess, self.slope2)
-                .and_then(|v| safe_div(v, 10_000))?;
-            safe_add(self.base_rate, kink_component)
-                .and_then(|v| safe_add(v, excess_component))
+            let excess_component =
+                safe_mul(excess, self.slope2).and_then(|v| safe_div(v, 10_000))?;
+            safe_add(self.base_rate, kink_component).and_then(|v| safe_add(v, excess_component))
         }
     }
 
@@ -39,8 +37,7 @@ impl InterestRateModel {
         reserve_factor: i128,
     ) -> Result<i128, MathError> {
         let net_factor = safe_add(10_000, -reserve_factor)?;
-        let rate_to_pool = safe_mul(borrow_rate, net_factor)
-            .and_then(|v| safe_div(v, 10_000))?;
+        let rate_to_pool = safe_mul(borrow_rate, net_factor).and_then(|v| safe_div(v, 10_000))?;
         safe_mul(rate_to_pool, utilization).and_then(|v| safe_div(v, 10_000))
     }
 }
@@ -111,8 +108,8 @@ mod tests {
     #[test]
     fn test_accrue_interest_annual() {
         let env = Env::default();
-        let interest = accrue_interest(&env, 100_000, 500, stellarlend_safe_math::SECONDS_PER_YEAR)
-            .unwrap();
+        let interest =
+            accrue_interest(&env, 100_000, 500, stellarlend_safe_math::SECONDS_PER_YEAR).unwrap();
         assert_eq!(interest, 5_000);
     }
 

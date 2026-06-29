@@ -1,19 +1,19 @@
 #![no_std]
 
-use soroban_sdk::{contract, contractimpl, Address, Env, String, Symbol, Vec, symbol_short};
+use soroban_sdk::{contract, contractimpl, symbol_short, Address, Env, String, Symbol, Vec};
 
-mod types;
 mod storage;
+mod types;
 
 #[cfg(test)]
 mod test;
 
-use crate::types::{
-    AuditEntry, MultisigConfig, Proposal, ProposalStatus, Transaction, WalletError,
-};
 use crate::storage::{
     add_audit_entry, get_admins, get_approvals, get_config, get_next_proposal_id, get_proposal,
     increment_proposal_id, set_admins, set_approvals, set_config, set_proposal,
+};
+use crate::types::{
+    AuditEntry, MultisigConfig, Proposal, ProposalStatus, Transaction, WalletError,
 };
 
 /// Emergency recovery timeout: 90 days without any admin activity.
@@ -25,11 +25,7 @@ pub struct InstitutionalWallet;
 #[contractimpl]
 impl InstitutionalWallet {
     /// Initialize the wallet with a set of admins and a threshold.
-    pub fn initialize(
-        env: Env,
-        admins: Vec<Address>,
-        threshold: u32,
-    ) -> Result<(), WalletError> {
+    pub fn initialize(env: Env, admins: Vec<Address>, threshold: u32) -> Result<(), WalletError> {
         if env.storage().instance().has(&crate::types::DataKey::Config) {
             return Err(WalletError::AlreadyInitialized);
         }
@@ -160,11 +156,7 @@ impl InstitutionalWallet {
 
         // Execute batch
         for tx in proposal.batch.iter() {
-            env.invoke_contract::<()>(
-                &tx.contract,
-                &tx.function,
-                tx.args,
-            );
+            env.invoke_contract::<()>(&tx.contract, &tx.function, tx.args);
         }
 
         proposal.status = ProposalStatus::Executed;
@@ -319,14 +311,20 @@ impl InstitutionalWallet {
         }
 
         // Collect guardian approvals for rotation
-        let mut approvals: Vec<Address> = env.storage().instance().get(&types::DataKey::GuardianApprovals).unwrap_or_else(|| Vec::new(&env));
+        let mut approvals: Vec<Address> = env
+            .storage()
+            .instance()
+            .get(&types::DataKey::GuardianApprovals)
+            .unwrap_or_else(|| Vec::new(&env));
         if approvals.contains(caller.clone()) {
             return Err(WalletError::AlreadyVoted);
         }
 
         let threshold = crate::storage::get_guardian_threshold(&env);
         approvals.push_back(caller.clone());
-        env.storage().instance().set(&types::DataKey::GuardianApprovals, &approvals);
+        env.storage()
+            .instance()
+            .set(&types::DataKey::GuardianApprovals, &approvals);
 
         if approvals.len() < threshold as usize {
             return Ok(()); // Need more approvals
@@ -338,7 +336,9 @@ impl InstitutionalWallet {
         crate::storage::set_pending_guardian_invites(&env, &new_guardians);
 
         // Reset approvals
-        env.storage().instance().remove(&types::DataKey::GuardianApprovals);
+        env.storage()
+            .instance()
+            .remove(&types::DataKey::GuardianApprovals);
 
         add_audit_entry(
             &env,
@@ -394,7 +394,9 @@ impl InstitutionalWallet {
         // Reset guardian approvals for this recovery
         let mut approvals = Vec::new(&env);
         approvals.push_back(guardian.clone());
-        env.storage().instance().set(&types::DataKey::GuardianApprovals, &approvals);
+        env.storage()
+            .instance()
+            .set(&types::DataKey::GuardianApprovals, &approvals);
 
         add_audit_entry(
             &env,
@@ -417,7 +419,8 @@ impl InstitutionalWallet {
             return Err(WalletError::Unauthorized);
         }
 
-        let request = crate::storage::get_recovery_request(&env).ok_or(WalletError::RecoveryNotActive)?;
+        let request =
+            crate::storage::get_recovery_request(&env).ok_or(WalletError::RecoveryNotActive)?;
         let now = env.ledger().timestamp();
 
         // Recovery expires after emergency timeout
@@ -426,13 +429,19 @@ impl InstitutionalWallet {
             return Err(WalletError::RecoveryNotActive);
         }
 
-        let mut approvals: Vec<Address> = env.storage().instance().get(&types::DataKey::GuardianApprovals).unwrap_or_else(|| Vec::new(&env));
+        let mut approvals: Vec<Address> = env
+            .storage()
+            .instance()
+            .get(&types::DataKey::GuardianApprovals)
+            .unwrap_or_else(|| Vec::new(&env));
         if approvals.contains(guardian.clone()) {
             return Err(WalletError::AlreadyVoted);
         }
 
         approvals.push_back(guardian.clone());
-        env.storage().instance().set(&types::DataKey::GuardianApprovals, &approvals);
+        env.storage()
+            .instance()
+            .set(&types::DataKey::GuardianApprovals, &approvals);
 
         add_audit_entry(
             &env,
@@ -455,19 +464,26 @@ impl InstitutionalWallet {
             return Err(WalletError::Unauthorized);
         }
 
-        let request = crate::storage::get_recovery_request(&env).ok_or(WalletError::RecoveryNotActive)?;
+        let request =
+            crate::storage::get_recovery_request(&env).ok_or(WalletError::RecoveryNotActive)?;
         let now = env.ledger().timestamp();
 
         // Can only cancel during the challenge period (before threshold is met)
         let threshold = crate::storage::get_guardian_threshold(&env);
-        let approvals: Vec<Address> = env.storage().instance().get(&types::DataKey::GuardianApprovals).unwrap_or_else(|| Vec::new(&env));
+        let approvals: Vec<Address> = env
+            .storage()
+            .instance()
+            .get(&types::DataKey::GuardianApprovals)
+            .unwrap_or_else(|| Vec::new(&env));
 
         if approvals.len() >= threshold as usize {
             return Err(WalletError::ExecutionFailed); // Too late, recovery already approved
         }
 
         crate::storage::set_recovery_request(&env, None);
-        env.storage().instance().remove(&types::DataKey::GuardianApprovals);
+        env.storage()
+            .instance()
+            .remove(&types::DataKey::GuardianApprovals);
 
         add_audit_entry(
             &env,
@@ -490,7 +506,8 @@ impl InstitutionalWallet {
             return Err(WalletError::Unauthorized);
         }
 
-        let request = crate::storage::get_recovery_request(&env).ok_or(WalletError::ProposalNotFound)?;
+        let request =
+            crate::storage::get_recovery_request(&env).ok_or(WalletError::ProposalNotFound)?;
         let now = env.ledger().timestamp();
 
         // Check emergency timeout mode
@@ -499,7 +516,11 @@ impl InstitutionalWallet {
 
         // Get guardian approvals
         let threshold = crate::storage::get_guardian_threshold(&env);
-        let approvals: Vec<Address> = env.storage().instance().get(&types::DataKey::GuardianApprovals).unwrap_or_else(|| Vec::new(&env));
+        let approvals: Vec<Address> = env
+            .storage()
+            .instance()
+            .get(&types::DataKey::GuardianApprovals)
+            .unwrap_or_else(|| Vec::new(&env));
 
         if !emergency_active {
             // Normal mode: enforce recovery delay (24h) and guardian threshold
@@ -514,11 +535,15 @@ impl InstitutionalWallet {
         // Emergency mode: skip delay, just need guardian auth
 
         set_admins(&env, &request.new_admins);
-        let config = MultisigConfig { threshold: request.new_threshold };
+        let config = MultisigConfig {
+            threshold: request.new_threshold,
+        };
         set_config(&env, &config);
 
         crate::storage::set_recovery_request(&env, None);
-        env.storage().instance().remove(&types::DataKey::GuardianApprovals);
+        env.storage()
+            .instance()
+            .remove(&types::DataKey::GuardianApprovals);
         crate::storage::set_last_activity(&env, now);
 
         add_audit_entry(
@@ -572,7 +597,10 @@ impl InstitutionalWallet {
     }
 
     pub fn get_guardian_approvals(env: Env) -> Vec<Address> {
-        env.storage().instance().get(&types::DataKey::GuardianApprovals).unwrap_or_else(|| Vec::new(&env))
+        env.storage()
+            .instance()
+            .get(&types::DataKey::GuardianApprovals)
+            .unwrap_or_else(|| Vec::new(&env))
     }
 
     pub fn get_last_activity(env: Env) -> u64 {

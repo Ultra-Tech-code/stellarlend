@@ -12,7 +12,9 @@
 
 #![cfg(test)]
 
-use soroban_sdk::{contract, contractimpl, testutils::Address as _, token, Address, Env, IntoVal, Symbol};
+use soroban_sdk::{
+    contract, contractimpl, testutils::Address as _, token, Address, Env, IntoVal, Symbol,
+};
 
 use crate::{LendingContract, LendingContractClient};
 
@@ -25,7 +27,7 @@ impl ReentrancyAttacker {
     /// Attempt direct reentrancy by calling back into the lending contract
     pub fn attack_direct_reentrancy(env: Env, target: Address, user: Address) {
         let client = LendingContractClient::new(&env, &target);
-        
+
         // Try to re-enter deposit function
         let token_opt = Some(env.current_contract_address());
         let _ = client.try_deposit_collateral(&user, &token_opt, &100);
@@ -34,7 +36,7 @@ impl ReentrancyAttacker {
     /// Attempt cross-contract reentrancy
     pub fn attack_cross_contract(env: Env, target: Address, user: Address) {
         let client = LendingContractClient::new(&env, &target);
-        
+
         // Try to call borrow during deposit
         let _ = client.try_borrow(
             &user,
@@ -48,13 +50,9 @@ impl ReentrancyAttacker {
     /// Attempt cross-function reentrancy
     pub fn attack_cross_function(env: Env, target: Address, user: Address) {
         let client = LendingContractClient::new(&env, &target);
-        
+
         // Try to call withdraw during deposit
-        let _ = client.try_withdraw(
-            &user,
-            &env.current_contract_address(),
-            &50,
-        );
+        let _ = client.try_withdraw(&user, &env.current_contract_address(), &50);
     }
 }
 
@@ -90,13 +88,16 @@ fn fuzz_test_direct_reentrancy() {
 
     // Attacker attempts reentrancy during deposit
     token::TokenClient::new(&env, &token_address).approve(&contract_id, &1_000_000, &9999);
-    
+
     let attacker_client = ReentrancyAttackerClient::new(&env, &attacker_id);
     attacker_client.attack_direct_reentrancy(&contract_id, &attacker);
 
     // Verify reentrancy was blocked
     let user_collateral = client.get_user_collateral_deposit(&user, &token_address);
-    assert!(user_collateral.amount >= 100_000, "Collateral should not be drained");
+    assert!(
+        user_collateral.amount >= 100_000,
+        "Collateral should not be drained"
+    );
 }
 
 /// Fuzz test for cross-contract reentrancy attacks
@@ -135,7 +136,10 @@ fn fuzz_test_cross_contract_reentrancy() {
 
     // Verify cross-contract reentrancy was blocked
     let user_collateral = client.get_user_collateral_deposit(&user, &token_address);
-    assert!(user_collateral.amount >= 100_000, "Collateral should not be drained");
+    assert!(
+        user_collateral.amount >= 100_000,
+        "Collateral should not be drained"
+    );
 }
 
 /// Fuzz test for cross-function reentrancy attacks
@@ -174,7 +178,10 @@ fn fuzz_test_cross_function_reentrancy() {
 
     // Verify cross-function reentrancy was blocked
     let user_collateral = client.get_user_collateral_deposit(&user, &token_address);
-    assert!(user_collateral.amount >= 100_000, "Collateral should not be drained");
+    assert!(
+        user_collateral.amount >= 100_000,
+        "Collateral should not be drained"
+    );
 }
 
 /// Fuzz test for constructor reentrancy
@@ -225,7 +232,10 @@ fn fuzz_test_read_only_reentrancy_detection() {
 
     // Call read-only functions (should succeed even during reentrancy)
     let collateral_balance = client.get_collateral_balance(&user);
-    assert!(collateral_balance >= 100_000, "Should be able to read during reentrancy");
+    assert!(
+        collateral_balance >= 100_000,
+        "Should be able to read during reentrancy"
+    );
 
     let health_factor = client.get_health_factor(&user);
     assert!(health_factor >= 0, "Should be able to read health factor");
@@ -264,7 +274,10 @@ fn fuzz_test_flash_loan_reentrancy() {
     );
 
     // Flash loan should succeed but reentrancy should be blocked
-    assert!(result.is_ok() || result.is_err(), "Flash loan should handle reentrancy");
+    assert!(
+        result.is_ok() || result.is_err(),
+        "Flash loan should handle reentrancy"
+    );
 }
 
 /// Property-based test: Reentrancy guard state transitions
@@ -298,7 +311,10 @@ fn fuzz_test_guard_state_transitions() {
 
     // Verify final state is consistent
     let user_collateral = client.get_user_collateral_deposit(&user, &token_address);
-    assert!(user_collateral.amount >= 0, "Collateral should be non-negative");
+    assert!(
+        user_collateral.amount >= 0,
+        "Collateral should be non-negative"
+    );
 }
 
 /// Property-based test: Cross-contract lock cleanup
@@ -330,5 +346,8 @@ fn fuzz_test_cross_contract_lock_cleanup() {
 
     // Verify cross-contract lock is cleaned up after operation
     let user_collateral = client.get_user_collateral_deposit(&user, &token_address);
-    assert!(user_collateral.amount >= 100_000, "Cross-contract lock should be cleaned up");
+    assert!(
+        user_collateral.amount >= 100_000,
+        "Cross-contract lock should be cleaned up"
+    );
 }

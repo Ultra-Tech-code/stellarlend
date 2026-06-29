@@ -9,7 +9,9 @@
 //! - Tier queries and benefits
 //! - Inactivity decay
 
-use crate::framework::{fresh_env, get_budget, measure_instructions, BenchmarkResult, BenchmarkSuite, RunConfig};
+use crate::framework::{
+    fresh_env, get_budget, measure_instructions, BenchmarkResult, BenchmarkSuite, RunConfig,
+};
 use soroban_sdk::{testutils::Address as _, Address, Env};
 use stellarlend_reputation::{
     ReputationConfig, ReputationContract, ReputationContractClient, ReputationTier, TierBenefits,
@@ -79,7 +81,9 @@ fn setup_initialized(env: &Env) -> (ReputationContractClient<'static>, Address) 
 fn setup_with_repayment(env: &Env) -> (ReputationContractClient<'static>, Address, Address) {
     let (client, admin) = setup_initialized(env);
     let borrower = Address::generate(env);
-    client.record_repayment(&admin, &borrower, &100_000i128, &true).unwrap();
+    client
+        .record_repayment(&admin, &borrower, &100_000i128, &true)
+        .unwrap();
     (client, admin, borrower)
 }
 
@@ -120,7 +124,9 @@ fn bench_record_repayment_cold(config: &RunConfig) -> BenchmarkResult {
     let borrower = Address::generate(&env);
 
     let (insns, mem) = measure_instructions(&env, || {
-        client.record_repayment(&admin, &borrower, &100_000i128, &true).unwrap();
+        client
+            .record_repayment(&admin, &borrower, &100_000i128, &true)
+            .unwrap();
     });
 
     BenchmarkResult::new(
@@ -143,7 +149,9 @@ fn bench_record_repayment_warm(config: &RunConfig) -> BenchmarkResult {
     let (client, admin, borrower) = setup_with_repayment(&env);
 
     let (insns, mem) = measure_instructions(&env, || {
-        client.record_repayment(&admin, &borrower, &50_000i128, &true).unwrap();
+        client
+            .record_repayment(&admin, &borrower, &50_000i128, &true)
+            .unwrap();
     });
 
     BenchmarkResult::new(

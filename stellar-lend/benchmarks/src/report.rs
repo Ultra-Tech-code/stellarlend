@@ -141,7 +141,11 @@ pub fn write_json(results: &[BenchmarkResult], path: &str) {
 /// Compare results against a baseline JSON file.
 /// Returns a list of regressions (operations that exceeded their budget or
 /// increased by more than the configured threshold compared to baseline).
-pub fn compare_baseline(results: &[BenchmarkResult], baseline_path: &str, threshold: f64) -> Vec<Regression> {
+pub fn compare_baseline(
+    results: &[BenchmarkResult],
+    baseline_path: &str,
+    threshold: f64,
+) -> Vec<Regression> {
     let baseline_json = match fs::read_to_string(baseline_path) {
         Ok(s) => s,
         Err(e) => {
@@ -261,7 +265,10 @@ pub fn write_markdown(results: &[BenchmarkResult], path: &str) {
 
     let mut markdown = String::new();
     markdown.push_str("# Gas Benchmark Report\n\n");
-    markdown.push_str(&format!("**Generated:** {}\n\n", chrono::Utc::now().to_rfc3339()));
+    markdown.push_str(&format!(
+        "**Generated:** {}\n\n",
+        chrono::Utc::now().to_rfc3339()
+    ));
     markdown.push_str(&format!("**Total Benchmarks:** {}\n", total));
     markdown.push_str(&format!("**Passed:** {}\n", passed));
     markdown.push_str(&format!("**Failed:** {}\n\n", failed));

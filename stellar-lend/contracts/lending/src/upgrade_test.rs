@@ -1,8 +1,11 @@
-use soroban_sdk::{testutils::{Address as _, Ledger as _}, Address, BytesN, Env, Error, InvokeError};
+use soroban_sdk::{
+    testutils::{Address as _, Ledger as _},
+    Address, BytesN, Env, Error, InvokeError,
+};
 
 use crate::upgrade::{
-    UpgradeManager, UpgradeManagerClient, UpgradeStage,
-    STANDARD_TIMELOCK_SECS, EMERGENCY_TIMELOCK_SECS,
+    UpgradeManager, UpgradeManagerClient, UpgradeStage, EMERGENCY_TIMELOCK_SECS,
+    STANDARD_TIMELOCK_SECS,
 };
 
 fn hash(env: &Env, b: u8) -> BytesN<32> {
@@ -101,7 +104,6 @@ fn test_upgrade_propose_auto_approved_at_threshold_one() {
     let status = client.upgrade_status(&proposal_id);
     assert_eq!(status.stage, UpgradeStage::Approved);
 }
-
 
 #[test]
 fn test_upgrade_approve_flow_and_status_transition() {
@@ -277,8 +279,7 @@ fn test_emergency_upgrade_uses_short_timelock() {
     env.mock_all_auths();
     let (client, admin) = setup(&env, 1);
 
-    let proposal_id =
-        client.upgrade_propose_emergency(&admin, &hash(&env, 5), &2);
+    let proposal_id = client.upgrade_propose_emergency(&admin, &hash(&env, 5), &2);
     let status = client.upgrade_status(&proposal_id);
     // With threshold=1 the proposal goes straight to TimelockQueued.
     assert_eq!(status.stage, UpgradeStage::TimelockQueued);
@@ -300,8 +301,7 @@ fn test_emergency_upgrade_shorter_than_standard() {
     env.mock_all_auths();
     let (client, admin) = setup(&env, 1);
 
-    let proposal_id =
-        client.upgrade_propose_emergency(&admin, &hash(&env, 6), &3);
+    let proposal_id = client.upgrade_propose_emergency(&admin, &hash(&env, 6), &3);
 
     // Advance only past the emergency window (4 h) but not 48 h.
     env.ledger().with_mut(|li| {

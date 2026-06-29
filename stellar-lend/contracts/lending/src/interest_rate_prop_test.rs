@@ -13,7 +13,13 @@ fn model_rate(util: i128) -> i128 {
     } else {
         let over = util - KINK;
         let range = 10_000 - KINK;
-        BASE_RATE + SLOPE + if range == 0 { 0 } else { over * JUMP_SLOPE / range }
+        BASE_RATE
+            + SLOPE
+            + if range == 0 {
+                0
+            } else {
+                over * JUMP_SLOPE / range
+            }
     };
     raw.max(FLOOR).min(CEILING)
 }

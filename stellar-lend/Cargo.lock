@@ -2766,6 +2766,8 @@ dependencies = [
  "soroban-token-sdk",
  "stellarlend-amm",
  "stellarlend-lending",
+ "stellarlend-pool-factory",
+ "stellarlend-reputation",
 ]
 
 [[package]]
@@ -2808,6 +2810,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "stellarlend-core"
+version = "0.1.0"
+dependencies = [
+ "soroban-sdk",
+]
+
+[[package]]
 name = "stellarlend-credit-delegation"
 version = "0.1.0"
 dependencies = [
@@ -2844,6 +2853,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "stellarlend-margin"
+version = "0.1.0"
+dependencies = [
+ "soroban-sdk",
+]
+
+[[package]]
 name = "stellarlend-migration-hub"
 version = "0.1.0"
 dependencies = [
@@ -2851,6 +2867,15 @@ dependencies = [
  "soroban-token-sdk",
  "stellarlend-common",
  "stellarlend-shared-deadline",
+]
+
+[[package]]
+name = "stellarlend-pool-factory"
+version = "0.1.0"
+dependencies = [
+ "soroban-sdk",
+ "soroban-token-sdk",
+ "stellarlend-common",
 ]
 
 [[package]]
@@ -2877,11 +2902,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "stellarlend-shared-signatures"
+version = "0.1.0"
+dependencies = [
+ "soroban-sdk",
+]
+
+[[package]]
 name = "stellarlend-stablecoin"
 version = "0.1.0"
 dependencies = [
  "soroban-sdk",
  "soroban-token-sdk",
+]
+
+[[package]]
+name = "stellarlend-swap-router"
+version = "0.1.0"
+dependencies = [
+ "soroban-sdk",
 ]
 
 [[package]]

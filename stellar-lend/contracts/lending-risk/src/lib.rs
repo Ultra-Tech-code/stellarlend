@@ -1,7 +1,7 @@
 #![no_std]
 
-use soroban_sdk::{Address, Env};
 use lending_types::{calculate_health_factor, is_healthy, BPS_DIVISOR};
+use soroban_sdk::{Address, Env};
 
 pub struct RiskManager;
 
@@ -11,7 +11,8 @@ impl RiskManager {
         debt_value: i128,
         liquidation_threshold_bps: i128,
     ) -> bool {
-        let health_factor = calculate_health_factor(collateral_value, debt_value, liquidation_threshold_bps);
+        let health_factor =
+            calculate_health_factor(collateral_value, debt_value, liquidation_threshold_bps);
         !is_healthy(health_factor)
     }
 
@@ -19,10 +20,7 @@ impl RiskManager {
         debt_amount * bonus_bps / BPS_DIVISOR
     }
 
-    pub fn calculate_max_liquidatable(
-        debt_value: i128,
-        close_factor_bps: i128,
-    ) -> i128 {
+    pub fn calculate_max_liquidatable(debt_value: i128, close_factor_bps: i128) -> i128 {
         debt_value * close_factor_bps / BPS_DIVISOR
     }
 
@@ -70,10 +68,11 @@ impl RiskMetrics {
         collateral_factor_bps: i128,
         liquidation_threshold_bps: i128,
     ) -> Self {
-        let health_factor = calculate_health_factor(collateral_value, debt_value, liquidation_threshold_bps);
+        let health_factor =
+            calculate_health_factor(collateral_value, debt_value, liquidation_threshold_bps);
         let ltv_ratio = RiskManager::calculate_ltv(debt_value, collateral_value);
         let borrow_capacity = collateral_value * collateral_factor_bps / BPS_DIVISOR;
-        
+
         let liquidation_price = if collateral_value > 0 {
             debt_value * BPS_DIVISOR / (collateral_value * liquidation_threshold_bps / BPS_DIVISOR)
         } else {
@@ -95,8 +94,12 @@ mod tests {
 
     #[test]
     fn test_liquidation_eligibility() {
-        assert!(RiskManager::check_liquidation_eligibility(100_000, 90_000, 8_000));
-        assert!(!RiskManager::check_liquidation_eligibility(100_000, 50_000, 8_000));
+        assert!(RiskManager::check_liquidation_eligibility(
+            100_000, 90_000, 8_000
+        ));
+        assert!(!RiskManager::check_liquidation_eligibility(
+            100_000, 50_000, 8_000
+        ));
     }
 
     #[test]
@@ -113,14 +116,22 @@ mod tests {
 
     #[test]
     fn test_borrow_capacity() {
-        assert!(RiskManager::validate_borrow_capacity(100_000, 50_000, 10_000, 7_500));
-        assert!(!RiskManager::validate_borrow_capacity(100_000, 70_000, 10_000, 7_500));
+        assert!(RiskManager::validate_borrow_capacity(
+            100_000, 50_000, 10_000, 7_500
+        ));
+        assert!(!RiskManager::validate_borrow_capacity(
+            100_000, 70_000, 10_000, 7_500
+        ));
     }
 
     #[test]
     fn test_concentration_risk() {
-        assert!(RiskManager::check_concentration_risk(30_000, 100_000, 5_000));
-        assert!(!RiskManager::check_concentration_risk(60_000, 100_000, 5_000));
+        assert!(RiskManager::check_concentration_risk(
+            30_000, 100_000, 5_000
+        ));
+        assert!(!RiskManager::check_concentration_risk(
+            60_000, 100_000, 5_000
+        ));
     }
 
     #[test]

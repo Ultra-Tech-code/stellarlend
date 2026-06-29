@@ -181,7 +181,7 @@ mod tests {
 
         // Withdraw should round up (user gets more)
         let withdraw = calculate_withdraw_amount(balance, fraction, 10000);
-        
+
         // Repay should round down (user pays less)
         let repay = calculate_repay_amount(balance, fraction, 10000);
 

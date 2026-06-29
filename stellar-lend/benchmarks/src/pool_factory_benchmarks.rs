@@ -7,7 +7,9 @@
 //! - Pool queries (count, list, by-index)
 //! - Config updates
 
-use crate::framework::{fresh_env, get_budget, measure_instructions, BenchmarkResult, BenchmarkSuite, RunConfig};
+use crate::framework::{
+    fresh_env, get_budget, measure_instructions, BenchmarkResult, BenchmarkSuite, RunConfig,
+};
 use soroban_sdk::{testutils::Address as _, Address, Env};
 use stellarlend_pool_factory::{PoolConfig, PoolFactory, PoolFactoryClient};
 
@@ -52,7 +54,13 @@ fn setup_initialized(env: &Env) -> (PoolFactoryClient<'static>, Address) {
 fn setup_with_pool(env: &Env) -> PoolFactoryClient<'static> {
     let (client, _) = setup_initialized(env);
     let cfg = make_pool_config(env);
-    client.create_pool(&cfg.asset, &cfg.oracle, &cfg.ltv_bps, &cfg.liquidation_threshold_bps, &cfg.interest_model);
+    client.create_pool(
+        &cfg.asset,
+        &cfg.oracle,
+        &cfg.ltv_bps,
+        &cfg.liquidation_threshold_bps,
+        &cfg.interest_model,
+    );
     client
 }
 
@@ -178,7 +186,13 @@ fn bench_get_pools(config: &RunConfig) -> BenchmarkResult {
     // Pre-populate 5 pools so the list read is non-trivial
     for _ in 0..5 {
         let cfg = make_pool_config(&env);
-        client.create_pool(&cfg.asset, &cfg.oracle, &cfg.ltv_bps, &cfg.liquidation_threshold_bps, &cfg.interest_model);
+        client.create_pool(
+            &cfg.asset,
+            &cfg.oracle,
+            &cfg.ltv_bps,
+            &cfg.liquidation_threshold_bps,
+            &cfg.interest_model,
+        );
     }
 
     let (insns, mem) = measure_instructions(&env, || {

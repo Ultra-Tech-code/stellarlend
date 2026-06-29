@@ -4,7 +4,7 @@
 //! enabling the lending protocol to interact with any ERC-20 compliant token.
 
 use crate::token_adapter::{AdapterConfig, AdapterError, TokenAdapterType};
-use soroban_sdk::{Address, Env, Vec, token::Client as TokenClient};
+use soroban_sdk::{token::Client as TokenClient, Address, Env, Vec};
 
 /// ERC-20 adapter for standard token interactions
 pub struct ERC20Adapter {
@@ -39,7 +39,7 @@ impl ERC20Adapter {
 }
 
 /// ERC-20 Token interface methods
-/// 
+///
 /// These methods interact with standard ERC-20 token contracts
 pub mod erc20 {
     use super::*;
@@ -61,20 +61,13 @@ pub mod erc20 {
     }
 
     /// Get the balance of a specific address
-    pub fn balance_of(
-        env: &Env,
-        token: &Address,
-        address: &Address,
-    ) -> Result<i128, AdapterError> {
+    pub fn balance_of(env: &Env, token: &Address, address: &Address) -> Result<i128, AdapterError> {
         let token_client = TokenClient::new(env, token);
         Ok(token_client.balance(address))
     }
 
     /// Get the total supply of the token
-    pub fn total_supply(
-        env: &Env,
-        token: &Address,
-    ) -> Result<i128, AdapterError> {
+    pub fn total_supply(env: &Env, token: &Address) -> Result<i128, AdapterError> {
         let token_client = TokenClient::new(env, token);
         Ok(token_client.total_supply())
     }
@@ -136,7 +129,13 @@ impl super::TokenAdapterTrait for ERC20Adapter {
         self.config.enabled
     }
 
-    fn transfer(&self, env: &Env, from: &Address, to: &Address, amount: i128) -> Result<(), AdapterError> {
+    fn transfer(
+        &self,
+        env: &Env,
+        from: &Address,
+        to: &Address,
+        amount: i128,
+    ) -> Result<(), AdapterError> {
         erc20::transfer(env, &self.config.token_address, from, to, amount)
     }
 
@@ -148,15 +147,32 @@ impl super::TokenAdapterTrait for ERC20Adapter {
         erc20::total_supply(env, &self.config.token_address)
     }
 
-    fn approve(&self, env: &Env, owner: &Address, spender: &Address, amount: i128) -> Result<(), AdapterError> {
+    fn approve(
+        &self,
+        env: &Env,
+        owner: &Address,
+        spender: &Address,
+        amount: i128,
+    ) -> Result<(), AdapterError> {
         erc20::approve(env, &self.config.token_address, owner, spender, amount)
     }
 
-    fn allowance(&self, env: &Env, owner: &Address, spender: &Address) -> Result<i128, AdapterError> {
+    fn allowance(
+        &self,
+        env: &Env,
+        owner: &Address,
+        spender: &Address,
+    ) -> Result<i128, AdapterError> {
         erc20::allowance(env, &self.config.token_address, owner, spender)
     }
 
-    fn transfer_from(&self, env: &Env, from: &Address, to: &Address, amount: i128) -> Result<(), AdapterError> {
+    fn transfer_from(
+        &self,
+        env: &Env,
+        from: &Address,
+        to: &Address,
+        amount: i128,
+    ) -> Result<(), AdapterError> {
         erc20::transfer_from(env, &self.config.token_address, from, to, amount)
     }
 }
@@ -168,10 +184,14 @@ pub fn verify_erc20_compatibility(
 ) -> Result<bool, AdapterError> {
     // Verify that the token contract implements required ERC-20 functions
     // This is a basic check - in production, would verify each function exists
-    
+
     // Check if token supports basic ERC-20 functions
     // In Soroban, this would use the token interface
-    match erc20::balance_of(env, token_address, &Address::from_contract_id(env, &env.current_contract())) {
+    match erc20::balance_of(
+        env,
+        token_address,
+        &Address::from_contract_id(env, &env.current_contract()),
+    ) {
         Ok(_) => Ok(true),
         Err(_) => Ok(false),
     }

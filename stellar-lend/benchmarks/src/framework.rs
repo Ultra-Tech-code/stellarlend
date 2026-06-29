@@ -36,7 +36,7 @@ pub struct RunConfig {
 impl RunConfig {
     pub fn from_args(args: &[String]) -> Self {
         let mut config = Self::default();
-        
+
         // Load from environment variables first
         if let Ok(threshold) = env::var("BENCHMARK_REGRESSION_THRESHOLD") {
             config.regression_threshold = threshold.parse().unwrap_or(5.0);
@@ -47,7 +47,7 @@ impl RunConfig {
         if let Ok(baseline) = env::var("BENCHMARK_BASELINE") {
             config.compare_baseline = Some(baseline);
         }
-        
+
         // Override with command-line arguments
         let mut i = 1;
         while i < args.len() {

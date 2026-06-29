@@ -5,7 +5,7 @@
 //! or a synthetic version of a native asset.
 
 use crate::token_adapter::{AdapterConfig, AdapterError, TokenAdapterType};
-use soroban_sdk::{Address, Env, Vec, token::Client as TokenClient};
+use soroban_sdk::{token::Client as TokenClient, Address, Env, Vec};
 
 /// Wrapped token adapter for handling wrapped assets
 pub struct WrappedAdapter {
@@ -30,11 +30,14 @@ impl WrappedAdapter {
     }
 
     /// Create from existing configuration
-    pub fn from_config(config: AdapterConfig, underlying_asset: Option<Address>) -> Result<Self, AdapterError> {
+    pub fn from_config(
+        config: AdapterConfig,
+        underlying_asset: Option<Address>,
+    ) -> Result<Self, AdapterError> {
         if config.adapter_type != TokenAdapterType::Wrapped {
             return Err(AdapterError::TokenNotSupported);
         }
-        Ok(Self { 
+        Ok(Self {
             config,
             underlying_asset,
         })
@@ -52,7 +55,7 @@ impl WrappedAdapter {
 }
 
 /// Wrapped token operations
-/// 
+///
 /// Wrapped tokens are backed by underlying assets and typically support
 /// minting/burning when wrapping/unwrapping.
 pub mod wrapped {
@@ -89,18 +92,12 @@ pub mod wrapped {
     }
 
     /// Get the underlying asset for a wrapped token
-    pub fn get_underlying(
-        _env: &Env,
-        _token: &Address,
-    ) -> Result<Option<Address>, AdapterError> {
+    pub fn get_underlying(_env: &Env, _token: &Address) -> Result<Option<Address>, AdapterError> {
         Ok(None)
     }
 
     /// Get the wrap/unwrap ratio
-    pub fn get_ratio(
-        _env: &Env,
-        _token: &Address,
-    ) -> Result<(i128, i128), AdapterError> {
+    pub fn get_ratio(_env: &Env, _token: &Address) -> Result<(i128, i128), AdapterError> {
         Ok((1, 1))
     }
 
@@ -121,20 +118,13 @@ pub mod wrapped {
     }
 
     /// Get the balance of wrapped tokens
-    pub fn balance_of(
-        env: &Env,
-        token: &Address,
-        address: &Address,
-    ) -> Result<i128, AdapterError> {
+    pub fn balance_of(env: &Env, token: &Address, address: &Address) -> Result<i128, AdapterError> {
         let token_client = TokenClient::new(env, token);
         Ok(token_client.balance(address))
     }
 
     /// Get total supply of wrapped tokens
-    pub fn total_supply(
-        env: &Env,
-        token: &Address,
-    ) -> Result<i128, AdapterError> {
+    pub fn total_supply(env: &Env, token: &Address) -> Result<i128, AdapterError> {
         let token_client = TokenClient::new(env, token);
         Ok(token_client.total_supply())
     }
@@ -153,7 +143,13 @@ impl super::TokenAdapterTrait for WrappedAdapter {
         self.config.enabled
     }
 
-    fn transfer(&self, env: &Env, from: &Address, to: &Address, amount: i128) -> Result<(), AdapterError> {
+    fn transfer(
+        &self,
+        env: &Env,
+        from: &Address,
+        to: &Address,
+        amount: i128,
+    ) -> Result<(), AdapterError> {
         wrapped::transfer(env, &self.config.token_address, from, to, amount)
     }
 
@@ -165,25 +161,39 @@ impl super::TokenAdapterTrait for WrappedAdapter {
         wrapped::total_supply(env, &self.config.token_address)
     }
 
-    fn approve(&self, _env: &Env, _owner: &Address, _spender: &Address, _amount: i128) -> Result<(), AdapterError> {
+    fn approve(
+        &self,
+        _env: &Env,
+        _owner: &Address,
+        _spender: &Address,
+        _amount: i128,
+    ) -> Result<(), AdapterError> {
         // Wrapped tokens may support approval
         Err(AdapterError::NotImplemented)
     }
 
-    fn allowance(&self, _env: &Env, _owner: &Address, _spender: &Address) -> Result<i128, AdapterError> {
+    fn allowance(
+        &self,
+        _env: &Env,
+        _owner: &Address,
+        _spender: &Address,
+    ) -> Result<i128, AdapterError> {
         Ok(0)
     }
 
-    fn transfer_from(&self, _env: &Env, _from: &Address, _to: &Address, _amount: i128) -> Result<(), AdapterError> {
+    fn transfer_from(
+        &self,
+        _env: &Env,
+        _from: &Address,
+        _to: &Address,
+        _amount: i128,
+    ) -> Result<(), AdapterError> {
         Err(AdapterError::NotImplemented)
     }
 }
 
 /// Verify if a token is a wrapped token
-pub fn verify_wrapped_token(
-    _env: &Env,
-    token_address: &Address,
-) -> Result<bool, AdapterError> {
+pub fn verify_wrapped_token(_env: &Env, token_address: &Address) -> Result<bool, AdapterError> {
     match token_address {
         Address::Contract(_) => Ok(true),
         _ => Ok(false),

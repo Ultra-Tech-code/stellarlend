@@ -1,7 +1,7 @@
 #![no_std]
 
+use lending_types::{CommonError, Position, ProtocolConfig, UserPosition};
 use soroban_sdk::{contract, contractimpl, Address, Env};
-use lending_types::{Position, ProtocolConfig, UserPosition, CommonError};
 
 #[contract]
 pub struct LendingCoreContract;
@@ -12,7 +12,7 @@ impl LendingCoreContract {
         if Self::get_admin(env.clone()).is_some() {
             return Err(CommonError::Unauthorized);
         }
-        
+
         let config = ProtocolConfig {
             admin: admin.clone(),
             oracle: None,
@@ -20,7 +20,7 @@ impl LendingCoreContract {
             min_borrow_amount: 100,
             liquidation_threshold_bps: 8_000,
         };
-        
+
         env.storage().instance().set(&"config", &config);
         Ok(())
     }

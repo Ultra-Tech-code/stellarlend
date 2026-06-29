@@ -1,5 +1,5 @@
+use crate::proptest_helpers::{make_harness, MAX_AMOUNT, MIN_AMOUNT};
 use proptest::prelude::*;
-use crate::proptest_helpers::{make_harness, MIN_AMOUNT, MAX_AMOUNT};
 
 proptest! {
     /// PROP-WITH-01: balance conservation after withdraw

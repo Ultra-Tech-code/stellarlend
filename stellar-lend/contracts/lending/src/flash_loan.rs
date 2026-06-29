@@ -122,16 +122,16 @@ pub fn record_price_sample(env: &Env, asset: &Address, spot_price: i128) {
         return;
     }
     let key = FlashLoanDataKey::TwapAccumulator(asset.clone());
-    let mut acc: TwapAccumulator = env
-        .storage()
-        .persistent()
-        .get(&key)
-        .unwrap_or(TwapAccumulator {
-            price_sum: 0,
-            sample_count: 0,
-            last_update: 0,
-            twap: spot_price,
-        });
+    let mut acc: TwapAccumulator =
+        env.storage()
+            .persistent()
+            .get(&key)
+            .unwrap_or(TwapAccumulator {
+                price_sum: 0,
+                sample_count: 0,
+                last_update: 0,
+                twap: spot_price,
+            });
 
     let cfg = get_manipulation_config(env);
     let now = env.ledger().timestamp();
@@ -196,11 +196,7 @@ fn check_twap_deviation(
 }
 
 /// Verify the borrow amount does not exceed the pool-relative liquidity cap.
-fn check_liquidity_cap(
-    env: &Env,
-    pool_balance: i128,
-    amount: i128,
-) -> Result<(), FlashLoanError> {
+fn check_liquidity_cap(env: &Env, pool_balance: i128, amount: i128) -> Result<(), FlashLoanError> {
     let cfg = get_manipulation_config(env);
     let max_borrow = pool_balance
         .checked_mul(cfg.max_borrow_liquidity_bps)
@@ -216,11 +212,7 @@ fn check_liquidity_cap(
 /// Verify the price impact of borrowing `amount` from a pool of `pool_balance`.
 ///
 /// Uses a constant-product approximation: impact ≈ amount / (pool_balance + amount).
-fn check_price_impact(
-    env: &Env,
-    pool_balance: i128,
-    amount: i128,
-) -> Result<(), FlashLoanError> {
+fn check_price_impact(env: &Env, pool_balance: i128, amount: i128) -> Result<(), FlashLoanError> {
     if pool_balance <= 0 {
         return Err(FlashLoanError::ExcessivePriceImpact);
     }
@@ -247,7 +239,12 @@ struct AssetLoanGuard {
 impl AssetLoanGuard {
     fn acquire(env: &Env, asset: &Address) -> Result<Self, FlashLoanError> {
         let key = FlashLoanDataKey::AssetLoanActive(asset.clone());
-        if env.storage().instance().get::<_, bool>(&key).unwrap_or(false) {
+        if env
+            .storage()
+            .instance()
+            .get::<_, bool>(&key)
+            .unwrap_or(false)
+        {
             return Err(FlashLoanError::ConcurrentLoan);
         }
         env.storage().instance().set(&key, &true);

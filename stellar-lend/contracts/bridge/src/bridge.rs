@@ -605,7 +605,12 @@ impl BridgeContract {
         cfg.fee_bps = fee_bps;
         Self::save_bridge(&env, &bridge_id, &cfg);
 
-        BridgeFeeUpdatedEvent { bridge_id, fee_bps, timestamp: env.ledger().timestamp() }.publish(&env);
+        BridgeFeeUpdatedEvent {
+            bridge_id,
+            fee_bps,
+            timestamp: env.ledger().timestamp(),
+        }
+        .publish(&env);
         Ok(())
     }
 
@@ -620,7 +625,12 @@ impl BridgeContract {
         cfg.active = active;
         Self::save_bridge(&env, &bridge_id, &cfg);
 
-        BridgeActiveUpdatedEvent { bridge_id, active, timestamp: env.ledger().timestamp() }.publish(&env);
+        BridgeActiveUpdatedEvent {
+            bridge_id,
+            active,
+            timestamp: env.ledger().timestamp(),
+        }
+        .publish(&env);
         Ok(())
     }
 
@@ -1254,10 +1264,14 @@ impl BridgeContract {
         Self::load_stats(&env)
     }
 
-    pub fn get_bridge_analytics(env: Env, bridge_id: String) -> Result<BridgeAnalytics, ContractError> {
+    pub fn get_bridge_analytics(
+        env: Env,
+        bridge_id: String,
+    ) -> Result<BridgeAnalytics, ContractError> {
         let bridge = Self::load_bridge(&env, &bridge_id)?;
         let validators = Self::validator_list(&env);
-        let active_validators = validators.iter()
+        let active_validators = validators
+            .iter()
             .filter_map(|v| Self::load_validator(&env, &v).ok())
             .filter(|r| r.active)
             .count() as u32;
@@ -1266,9 +1280,15 @@ impl BridgeContract {
             bridge_id: bridge_id.clone(),
             total_volume_deposited: bridge.total_deposited,
             total_volume_withdrawn: bridge.total_withdrawn,
-            net_volume: bridge.total_deposited.saturating_sub(bridge.total_withdrawn),
+            net_volume: bridge
+                .total_deposited
+                .saturating_sub(bridge.total_withdrawn),
             fee_bps: bridge.fee_bps,
-            total_fees_collected: Self::compute_fee(env.clone(), bridge.total_deposited, bridge.fee_bps),
+            total_fees_collected: Self::compute_fee(
+                env.clone(),
+                bridge.total_deposited,
+                bridge.fee_bps,
+            ),
             active_validators,
             total_validators: validators.len() as u32,
             is_active: bridge.active,
@@ -1278,13 +1298,13 @@ impl BridgeContract {
     pub fn get_all_bridge_analytics(env: Env) -> Vec<BridgeAnalytics> {
         let bridges = Self::bridge_list(&env);
         let mut analytics = Vec::new(&env);
-        
+
         for bridge_id in bridges.iter() {
             if let Ok(stats) = Self::get_bridge_analytics(env.clone(), bridge_id.clone()) {
                 analytics.push_back(stats);
             }
         }
-        
+
         analytics
     }
 

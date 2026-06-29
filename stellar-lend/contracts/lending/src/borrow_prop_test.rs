@@ -1,5 +1,5 @@
+use crate::proptest_helpers::{make_harness, MAX_AMOUNT, MIN_AMOUNT};
 use proptest::prelude::*;
-use crate::proptest_helpers::{make_harness, MIN_AMOUNT, MAX_AMOUNT};
 
 fn valid_borrow_pair() -> impl Strategy<Value = (i128, i128)> {
     (MIN_AMOUNT..=MAX_AMOUNT / 2).prop_flat_map(|borrow| {
